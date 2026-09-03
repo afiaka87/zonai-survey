@@ -1,0 +1,30 @@
+Zonai Survey
+Copyright (C) Clay Mullis
+
+This program is free software released under GPL-2.0-only. See LICENSE.
+
+The text renderer and part of the overlay hook are derived from totk-lotuskit by
+aquacluck and its contributors. The derived files keep their original copyright,
+source link, and GPL-2.0-only notices. SymResolve.hpp is a verbatim LotusKit helper.
+
+Source: https://github.com/aquacluck/totk-lotuskit
+
+The program builds on exlaunch by shadowninja108 and contributors. exlaunch is an
+external GPL-2.0 dependency and is not copied into this source tree. The local patch
+set needed by this build is included under patches/exlaunch/.
+
+Source: https://github.com/shadowninja108/exlaunch
+
+The CMake Switch helpers are adapted from switch-cmake by vbe0201, under the MIT
+License. Host tests use doctest v2.4.11 by Viktor Kirilov, also under the MIT License.
+
+Sources:
+https://github.com/vbe0201/switch-cmake
+https://github.com/doctest/doctest
+
+The source repository does not contain Nintendo game data or the runtime font and
+shader files. The binary mod archive contains eight separate runtime data files so
+the mod works after installation. Seven match files distributed with LotusKit. The
+JIS1 mipmap font texture was modified to add the icons used by Zonai Survey. Those
+data files are not relicensed under GPL-2.0-only, and all rights in them remain with
+their respective rights holders.

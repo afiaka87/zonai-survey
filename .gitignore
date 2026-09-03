@@ -1,0 +1,7 @@
+/build/
+/external/
+/tests/build-host/
+*.elf
+*.nso
+*.npdm
+/subsdk9

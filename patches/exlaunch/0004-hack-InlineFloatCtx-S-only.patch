@@ -1,0 +1,18 @@
+diff --git a/subrepo/exlaunch/source/lib/hook/nx64/inline_impl.hpp b/subrepo/exlaunch/source/lib/hook/nx64/inline_impl.hpp
+index ed3a44b..aea4ace 100644
+--- a/subrepo/exlaunch/source/lib/hook/nx64/inline_impl.hpp
++++ b/subrepo/exlaunch/source/lib/hook/nx64/inline_impl.hpp
+@@ -81,3 +81,2 @@ namespace exl::hook::nx64 {
+         ACCESSOR(FloatRegisterAccessor, Float64,    f64,    32, m_Fr, D);
+-        ACCESSOR(FloatRegisterAccessor, Float32,    f32,    32, m_Fr, S);
+         ACCESSOR(FloatRegisterAccessor, Float16,    f16,    32, m_Fr, H);
+@@ -87,2 +86,9 @@ namespace exl::hook::nx64 {
+         #undef ACCESSOR
++        struct Float32RegisterAccessor : public FloatRegisterAccessorImpl {
++            f32& operator[](int index) {
++                EXL_ASSERT(0 <= index && index < 32, "Register index must not be out of bounds!");
++                FloatRegisters* fr = (FloatRegisters*)(((void*)&Get()) - 0x100);
++                return fr->m_Fr[index].S;
++            }
++        };
+     }
