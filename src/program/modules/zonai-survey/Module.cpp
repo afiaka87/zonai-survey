@@ -259,13 +259,29 @@ void moduleOnRaycast(wwpg::RaycastFn original, const void*, const void*, const v
 }
 
 constexpr wwpg::Module kModule{
+    .name = "Zonai Survey",
 #if SOLO_HARNESS_TEXT
+    .actors = g_objectsText,
+    .controls = g_controlsText,
+    .requirement = g_requirementText,
 #else
+    .actors = nullptr,
+    .controls = nullptr,
+    .requirement = nullptr,
 #endif
+    .init = &moduleInit,
+    .enter = &moduleEnter,
+    .tick = &moduleTick,
+    .requestExit = &moduleRequestExit,
 #if SOLO_HARNESS_TEXT
+    .status = &moduleStatus,
 #else
+    .status = nullptr,
 #endif
+    .onRaycast = &moduleOnRaycast,
+    .aim = nullptr,
 };
+static_assert(kModule.init && kModule.tick && kModule.onRaycast);
 
 }  
 

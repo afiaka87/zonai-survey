@@ -5,3 +5,8 @@
 *.nso
 *.npdm
 /subsdk9
+/artifacts/
+*.keys
+*.keys_*
+*.zip
+/zonai-survey-screenshots/

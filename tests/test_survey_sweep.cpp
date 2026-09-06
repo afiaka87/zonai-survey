@@ -13,33 +13,6 @@
 
 using namespace zonai_survey::pure;
 
-namespace {
-
-TerrainSample groundAt(float x, float z, float y) {
-    TerrainSample sample{};
-    sample.hit = true;
-    sample.x = x;
-    sample.y = y;
-    sample.z = z;
-    sample.normalY = 1.0f;
-    sample.distance = 10.0f;
-    return sample;
-}
-
-TerrainSample wallAt(float x, float y, float z, float distance) {
-    TerrainSample sample{};
-    sample.hit = true;
-    sample.x = x;
-    sample.y = y;
-    sample.z = z;
-    sample.normalX = 1.0f;
-    sample.normalY = 0.0f;
-    sample.normalZ = 0.0f;
-    sample.distance = distance;
-    return sample;
-}
-
-}  
 
 
 TEST_CASE("the sweep front travels forward and never reverses") {

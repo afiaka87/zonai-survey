@@ -128,8 +128,8 @@ std::uint32_t drawSurveyBeamBuffer(const ScanFrame& frame, std::uint32_t tick,
 
         const float alpha = pure::surveyPassAlpha(head.crestline, head.revealWave, tick);
         const float lift = pure::sweepLift(head.revealWave, tick);
-        sead::Color4f startColor{};
-        sead::Color4f endColor{};
+        sead::Color4f startColor{0.0f, 0.0f, 0.0f, 1.0f};
+        sead::Color4f endColor{0.0f, 0.0f, 0.0f, 1.0f};
         passLaneColors(head.lane, head.revealWave, alpha, startColor, endColor);
         if (pure::isCliffVertical(head)) {
             startColor.a *= pure::kCliffVerticalAlphaScale;

@@ -21,6 +21,7 @@ endif()
 
 add_executable(zonai_survey_pure_tests
   test_main.cpp
+  test_survey_assets.cpp
   test_pulse_lattice.cpp
   test_scan_batching.cpp
   test_scan_reduction.cpp

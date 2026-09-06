@@ -6,6 +6,32 @@
 namespace lotuskit {
     TextWriterFrame TextWriter::frame = {};
 
+    void DebugDrawHooks::initializeDebugDrawers(const GraphicsModuleCreateArg* original) {
+        static bool preflightAttempted = false;
+        if (!original) {
+            Logging.Log("[overlay] debug graphics refused: create arguments unavailable");
+            TextWriter::assignHeap(nullptr);
+            return;
+        }
+        if (g_graphicsPreflight) {
+            if (preflightAttempted) return;
+            preflightAttempted = true;
+            if (!g_graphicsPreflight(TextWriter::debugDrawerInternalHeap)) {
+                TextWriter::assignHeap(nullptr);
+                return;
+            }
+        }
+        GraphicsModuleCreateArg arg = {};
+        arg.value0 = g_primitiveUniformBufferBytes != 0
+            ? static_cast<s32>(g_primitiveUniformBufferBytes) : original->value0;
+        arg.value1 = original->value1;
+        Logging.Log("[overlay] debug graphics heap=%p ring=%d", TextWriter::debugDrawerInternalHeap,
+                    arg.value0);
+        auto initialize = EXL_SYM_RESOLVE<InitDebugDrawers*>("agl::init_debug_drawers");
+        initialize(TextWriter::debugDrawerInternalHeap, arg);
+        g_graphicsReady.store(true, std::memory_order_release);
+    }
+
     void TextWriter::appendNewDrawNode(size_t drawList_i, const char* text,
                                       TextWriterDrawCallback* fn, float scale,
                                       const sead::Color4f* color,

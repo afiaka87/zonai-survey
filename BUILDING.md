@@ -1,7 +1,7 @@
 # Building Zonai Survey
 
 The source is GPL-2.0-only. exlaunch, compatibility headers, the TotK 1.2.1 relocation
-symbols, devkitA64, and Nintendo Switch packaging tools stay as external dependecies.
+symbols, devkitA64, and Nintendo Switch packaging tools stay as external dependencies.
 They are not vendored into this repository.
 
 ## Required inputs
@@ -32,6 +32,11 @@ cmake --build build --target subsdk9_meta
 
 The output is `build/subsdk9` plus `build/main.npdm`. The release profile compiles
 with `SOLO_HARNESS_TEXT=0` and `OVERLAY_DEBUG_HUD=0`.
+The post-link import check rejects unresolved program symbols and the unbound
+color constants that previously caused scan-time crashes.
+
+Build once and use those same two output files for both installation layouts in
+README.md. Do not compile separate emulator and Switch variants.
 
 The `romfs/` files are intentionally absent from the source repository. See
 [`romfs/README.md`](romfs/README.md) for the expected local directories.

@@ -239,9 +239,6 @@ HOOK_DEFINE_INLINE(StealHeapHook) {
         stolenHeap = reinterpret_cast<sead::Heap*>(ctx->X[xi]);
         lotuskit::TextWriter::assignHeap(stolenHeap);
 
-        char buf[32];
-        nn::util::SNPrintf(buf, sizeof(buf), "yoink(%p)", stolenHeap);
-        svcOutputDebugString(buf, strlen(buf));
     }
 };
 

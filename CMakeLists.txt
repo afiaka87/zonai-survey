@@ -97,6 +97,12 @@ add_executable(subsdk9
 )
 set_target_properties(subsdk9 PROPERTIES SUFFIX ".elf" C_STANDARD 23 CXX_STANDARD 26)
 target_compile_options(subsdk9 PRIVATE -Werror=switch)
+add_custom_command(TARGET subsdk9 POST_BUILD
+  COMMAND "${CMAKE_COMMAND}" "-DNM=${CMAKE_NM}" "-DELF=$<TARGET_FILE:subsdk9>"
+          -P "${PROJECT_SOURCE_DIR}/cmake/CheckImports.cmake"
+  VERBATIM
+  COMMENT "Checking module imports"
+)
 add_nso_target_subsdk(subsdk9)
 set_target_properties(subsdk9 PROPERTIES CONFIG_JSON "${CMAKE_CURRENT_BINARY_DIR}/subsdk9.json")
 __generate_npdm(subsdk9)

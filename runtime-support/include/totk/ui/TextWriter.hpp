@@ -150,6 +150,15 @@ namespace lotuskit {
         inline NativeWorldDrawCallback g_nativeWorldDrawCallback = nullptr;
         inline std::atomic<bool> g_textVisible = true;
         inline std::uint32_t g_primitiveUniformBufferBytes = 0;
+        using GraphicsPreflight = bool(*)(sead::Heap*);
+        inline GraphicsPreflight g_graphicsPreflight = nullptr;
+        inline std::atomic<bool> g_graphicsReady{false};
+        inline void setGraphicsPreflight(GraphicsPreflight callback) {
+            g_graphicsPreflight = callback;
+        }
+        inline bool graphicsReady() {
+            return g_graphicsReady.load(std::memory_order_acquire);
+        }
         inline void setWorldDrawCallback(WorldDrawCallback callback) {
             g_worldDrawCallback = callback;
         }
@@ -173,18 +182,12 @@ namespace lotuskit {
             s32 value1;
         };
         using InitDebugDrawers = void(sead::Heap*, GraphicsModuleCreateArg&);
+        void initializeDebugDrawers(const GraphicsModuleCreateArg* original);
 
         HOOK_DEFINE_INLINE(BootupInitDebugDrawersHook) {
             static constexpr auto s_name = "agl::create_arg"; 
             static void Callback(exl::hook::InlineCtx* ctx) {
-                GraphicsModuleCreateArg arg = {0};
-                arg.value0 = reinterpret_cast<GraphicsModuleCreateArg*>(ctx->X[1])->value0;
-                arg.value1 = reinterpret_cast<GraphicsModuleCreateArg*>(ctx->X[1])->value1; 
-                if (g_primitiveUniformBufferBytes != 0) {
-                    arg.value0 = static_cast<s32>(g_primitiveUniformBufferBytes);
-                }
-                auto func = EXL_SYM_RESOLVE<InitDebugDrawers*>("agl::init_debug_drawers");
-                func(TextWriter::debugDrawerInternalHeap, arg); 
+                initializeDebugDrawers(reinterpret_cast<GraphicsModuleCreateArg*>(ctx->X[1]));
             }
         };
 
