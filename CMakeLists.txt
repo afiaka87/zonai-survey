@@ -3,6 +3,11 @@ project(zonai_survey CXX C ASM)
 option(SURVEY_DEPTH_SCAN "Use depth-based surface rendering" ON)
 option(SURVEY_FIDELITY_PLAYGROUND "Enable diagnostic controls and shaders" OFF)
 option(SURVEY_COMPACT_MAP "Losslessly pack collectible placements" ON)
+option(SURVEY_CONSTRAINED "Use 180 m / 7 s instead of regular 440 m / 3 s" OFF)
+option(SURVEY_TUNING "Enable range and cooldown test controls" OFF)
+if((SURVEY_CONSTRAINED OR SURVEY_TUNING) AND (NOT SURVEY_DEPTH_SCAN OR SURVEY_FIDELITY_PLAYGROUND))
+  message(FATAL_ERROR "Survey options require depth scan without the shader playground")
+endif()
 
 set(EXLAUNCH_ROOT "" CACHE PATH "Path to the pinned exlaunch checkout")
 set(TOTK_SDK_ROOT "" CACHE PATH "Path to compatible TotK headers and 1.2.1 symbols")
@@ -100,7 +105,9 @@ add_executable(subsdk9
 )
 target_compile_definitions(subsdk9 PRIVATE
   SURVEY_DEPTH_SCAN=$<BOOL:${SURVEY_DEPTH_SCAN}>
-  SURVEY_FIDELITY_PLAYGROUND=$<BOOL:${SURVEY_FIDELITY_PLAYGROUND}>)
+  SURVEY_FIDELITY_PLAYGROUND=$<BOOL:${SURVEY_FIDELITY_PLAYGROUND}>
+  SURVEY_CONSTRAINED=$<BOOL:${SURVEY_CONSTRAINED}>
+  SURVEY_TUNING=$<BOOL:${SURVEY_TUNING}>)
 get_target_property(SURVEY_SOURCES subsdk9 SOURCES)
 if(SURVEY_DEPTH_SCAN)
   list(FILTER SURVEY_SOURCES EXCLUDE REGEX "/(ScanController|ScanRenderer|TerrainProber|VerticalSurfaceProber|WaterSurfaceProbe)\\.cpp$")

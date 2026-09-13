@@ -3,6 +3,7 @@
 #include "FidelityPolicy.hpp"
 #include "FidelityTrace.hpp"
 #include "FidelityShaders.hpp"
+#include "../pure/SurveyOptions.hpp"
 #include <lib.hpp>
 #include <nvn/nvn.h>
 #include <atomic>
@@ -21,6 +22,9 @@ std::uintptr_t g_base{};
 std::atomic<unsigned> g_mode{}, g_pulseSequence{};
 std::atomic<unsigned> g_imprint{1};
 std::atomic<float> g_origin[3]{}, g_heading[2]{};
+#if SURVEY_CONSTRAINED || SURVEY_TUNING
+std::atomic<float> g_pulseRange{zonai_survey::options::nextRange()};
+#endif
 std::atomic<std::uint64_t> g_startTick{};
 std::atomic<bool> g_anchorValid{};
 totk::engine::NpadReader g_input{};
@@ -235,6 +239,9 @@ void draw(void* drawContext, void* scene, void* context) {
     Uniforms uniforms{};
     for (unsigned i = 0; i < 3; ++i) uniforms.scanOrigin[i] = g_origin[i].load();
     for (unsigned i = 0; i < 2; ++i) uniforms.scanHeading[i] = g_heading[i].load();
+#if SURVEY_CONSTRAINED || SURVEY_TUNING
+    const float pulseRange = g_pulseRange.load();
+#endif
     const auto seconds = pulseSeconds();
     const bool validAnchor = g_anchorValid.load();
     if ((sequence & 1) || sequence != g_pulseSequence.load()) return;
@@ -274,6 +281,9 @@ void draw(void* drawContext, void* scene, void* context) {
 
     uniforms.settings[0] = kind == Mode::Stripe ? 3.0f : 2.0f;
     uniforms.settings[1] = 0;
+#if SURVEY_CONSTRAINED || SURVEY_TUNING
+    uniforms.settings[1] = pulseRange;
+#endif
     uniforms.scanOrigin[3] = validAnchor ? 1.0f : 0.0f;
     uniforms.scanHeading[2] = scanConeCosHalf();
     uniforms.scanHeading[3] = selectedMode == unsigned(Mode::Stripe) ? kBandCount*kBandSpacing : pulseFront(seconds);
@@ -451,6 +461,9 @@ bool beginPulse(float x, float y, float z, float hx, float hz) {
     ++g_pulseSequence;
     g_origin[0] = x; g_origin[1] = y; g_origin[2] = z;
     g_heading[0] = hx/length; g_heading[1] = hz/length;
+#if SURVEY_CONSTRAINED || SURVEY_TUNING
+    g_pulseRange = zonai_survey::options::nextRange();
+#endif
     g_startTick = svcGetSystemTick(); g_anchorValid = true; g_mode = 0;
     ++g_pulseSequence;
     Logging.Log("[survey-fidelity] PULSE origin=%.2f,%.2f,%.2f heading=%.3f,%.3f bands=%u spacing=%.1f seconds=%.1f\n",

@@ -4,6 +4,7 @@
 #include "FidelityPlayground.hpp"
 #include "CameraHeading.hpp"
 #include "Audio.hpp"
+#include "SurveyOptions.hpp"
 #include "totk/engine/ActorRoster.hpp"
 #include "totk/engine/Scene.hpp"
 #include "totk/engine/Transform.hpp"
@@ -32,8 +33,7 @@ bool ScanController::resolveLink(float& x, float& y, float& z, std::uint32_t& ge
 }
 pure::ScanVerdict ScanController::trigger() {
     auto verdict = pure::ScanVerdict::Accepted;
-    if (state_ == ScanState::Pulsing) verdict = pure::ScanVerdict::AlreadyPulsing;
-    else if (!resolveLink(originX_, originY_, originZ_, scene_))
+    if (!resolveLink(originX_, originY_, originZ_, scene_))
         verdict = pure::ScanVerdict::PlayerUnresolved;
     else {
         engine::cameraForward(headingX_, headingZ_);

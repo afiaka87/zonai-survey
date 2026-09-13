@@ -12,6 +12,7 @@ inline const char* displayText(pure::ScanVerdict verdict) {
             return "a scan is already travelling";
         case pure::ScanVerdict::PlayerUnresolved:
             return "cannot find Link right now";
+        case pure::ScanVerdict::CoolingDown: return "survey is recharging";
     }
     return "not ready";
 }

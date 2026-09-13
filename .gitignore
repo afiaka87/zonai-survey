@@ -1,4 +1,7 @@
 /build/
+/build-*/
+__pycache__/
+*.py[cod]
 /external/
 /tests/build-host/
 *.elf

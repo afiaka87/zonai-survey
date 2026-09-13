@@ -15,6 +15,8 @@
 #include "ScanController.hpp"
 #include "ScanPresentation.hpp"
 #include "ScanRenderer.hpp"
+#include "SurveyOptions.hpp"
+#include "Audio.hpp"
 #include "totk/engine/Npad.hpp"
 #include "totk/ui/Overlay.hpp"
 
@@ -34,6 +36,7 @@ totk::engine::NpadReader g_npad{};
 std::uint64_t g_previousButtons = 0;
 std::uint64_t g_ownedSurveyButton = 0;
 bool g_ready = false;
+zonai_survey::pure::SurveyCooldown g_cooldown{}, g_refusalSound{};
 zonai_survey::feature::ScanState g_previousState = zonai_survey::feature::ScanState::Idle;
 
 char g_reachText[64]{};
@@ -79,6 +82,10 @@ void buildReachText(const zonai_survey::feature::ScanDiagnostics& diagnostics) {
 }
 
 void moduleInit(std::uintptr_t mainBase) {
+    g_cooldown = {}; g_refusalSound = {};
+#if SURVEY_TUNING
+    zonai_survey::options::settings = {};
+#endif
     g_scan.initialize(mainBase);
     g_glyphs.initialize(mainBase);
     g_previousButtons = 0;
@@ -101,14 +108,42 @@ void moduleEnter() {
 #endif
 }
 
+#if SURVEY_TUNING
+void showSurveySettings() {
+    const auto& settings = zonai_survey::options::settings;
+    const auto frequency = zonai_survey::pure::kSystemTicksPerSecond;
+    const auto remaining = (g_cooldown.remaining(svcGetSystemTick()) + frequency - 1) / frequency;
+    char title[64]{}, detail[96]{};
+    nn::util::SNPrintf(title, sizeof(title), "Survey: %u m / %u s cooldown",
+        settings.rangeIndex == 5 ? 440u : unsigned(settings.range()), settings.cooldownSeconds());
+    nn::util::SNPrintf(detail, sizeof(detail), "Next scan settings; ready in %u s. ZL+Left range / Right cooldown",
+        unsigned(remaining));
+    overlay::showBanner(title, detail, 180);
+}
+#endif
+
 void serviceSurveyInput(const totk::engine::NpadFrame& frame, std::uint64_t buttons,
                         std::uint64_t pressed) {
 
-    if ((buttons & BTN_ZL) != 0) g_ownedSurveyButton |= buttons & BTN_UP;
+    std::uint64_t ownedMask = BTN_UP;
+#if SURVEY_TUNING
+    constexpr std::uint64_t left = 1ull << 12, right = 1ull << 14, down = 1ull << 15;
+    ownedMask |= left | right | down;
+#endif
+    if ((buttons & BTN_ZL) != 0) g_ownedSurveyButton |= buttons & ownedMask;
     frame.maskOwnedButtons(g_ownedSurveyButton);
 
+#if SURVEY_TUNING
+    if ((buttons & BTN_ZL) && (pressed & (left | right | down))) {
+        if (pressed & left) zonai_survey::options::settings.cycleRange();
+        else if (pressed & right) zonai_survey::options::settings.cycleCooldown();
+        showSurveySettings();
+        return;
+    }
+#endif
     if ((buttons & BTN_ZL) == 0 || (pressed & BTN_UP) == 0) return;
     const auto verdict = zonai_survey::integration::triggerSurvey();
+    if (verdict == zonai_survey::pure::ScanVerdict::CoolingDown) return;
     if (verdict != zonai_survey::pure::ScanVerdict::Accepted) {
         overlay::showBanner("Cannot survey here",
                             zonai_survey::presentation::displayText(verdict), 150);
@@ -222,11 +257,13 @@ void moduleTick(void* npadDevice) {
 
     if (npadDevice) {
         const auto frame = g_npad.read(npadDevice);
-        const std::uint64_t buttons = frame.snapshot().buttons;
-        const std::uint64_t pressed = buttons & ~g_previousButtons;
-        g_previousButtons = buttons;
-        g_ownedSurveyButton &= buttons;
-        serviceSurveyInput(frame, buttons, pressed);
+        if (!SURVEY_TUNING || frame.snapshot().freshSampleCount) {
+            const std::uint64_t buttons = frame.snapshot().buttons;
+            const std::uint64_t pressed = buttons & ~g_previousButtons;
+            g_previousButtons = buttons;
+            g_ownedSurveyButton &= buttons;
+            serviceSurveyInput(frame, buttons, pressed);
+        }
     }
     serviceSurveyCompletion();
 }
@@ -299,9 +336,23 @@ constexpr wwpg::Module kModule{
 namespace zonai_survey::integration {
 
 pure::ScanVerdict triggerSurvey() {
+    const auto now = svcGetSystemTick();
+    if (g_cooldown.remaining(now)) {
+        if (!g_refusalSound.remaining(now)) {
+            const bool available = audio::playCue(pure::kSurveyRefusalCue);
+            g_refusalSound.started = now;
+            g_refusalSound.duration = pure::kSystemTicksPerSecond / 4;
+            Logging.Log("[survey-options] cooldown refusal sound_bank=%u remaining_ticks=%llu\n",
+                unsigned(available), g_cooldown.remaining(now));
+        }
+        return pure::ScanVerdict::CoolingDown;
+    }
     const pure::ScanVerdict verdict = g_scan.trigger();
     if (verdict != pure::ScanVerdict::Accepted) return verdict;
 
+    g_cooldown.start(svcGetSystemTick(), options::cooldownSeconds());
+    Logging.Log("[survey-options] accepted range=%.1f cooldown=%u tuning=%u\n",
+        options::nextRange(), options::cooldownSeconds(), unsigned(SURVEY_TUNING));
     g_glyphs.onPulse(g_scan.originX(), g_scan.originY(), g_scan.originZ(),
                      g_scan.headingX(), g_scan.headingZ(), g_scan.sceneGeneration());
     return verdict;

@@ -38,14 +38,17 @@ cmake --build build --target subsdk9_meta
 The output is `build/subsdk9` plus `build/main.npdm`. The release profile compiles
 with `SOLO_HARNESS_TEXT=0` and `OVERLAY_DEBUG_HUD=0`.
 `SURVEY_DEPTH_SCAN=ON`, `SURVEY_COMPACT_MAP=ON` and
-`SURVEY_FIDELITY_PLAYGROUND=OFF` select the shipping profile.
+`SURVEY_FIDELITY_PLAYGROUND=OFF` and `SURVEY_TUNING=OFF` select a shipping profile.
+Leave `SURVEY_CONSTRAINED=OFF` for Regular (~440 m / 3 s), or set it `ON` for
+Constrained (180 m / 7 s). All profiles use the same v0.1.4 version label.
 The historical raycast and diagnostic profiles are retained for development,
 not shipped as alternative binaries.
 The post-link import check rejects unresolved program symbols and the unbound
 color constants that previously caused scan-time crashes.
 
-Build once and use those same two output files for both installation layouts in
-README.md. Do not compile separate emulator and Switch variants.
+Build once per flavor and use its same two output files for both installation
+layouts in README.md. Do not compile separate emulator and Switch variants.
+Use separate build directories or reconfigure `SURVEY_CONSTRAINED` before rebuilding.
 
 `tools/compile_shaders.py` verifies the external tool binaries before use:
 

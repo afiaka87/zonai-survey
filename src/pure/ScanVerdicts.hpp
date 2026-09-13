@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include "SurveyOptions.hpp"
 
 namespace zonai_survey::pure {
 
@@ -12,6 +13,7 @@ enum class ScanVerdict : uint8_t {
     Accepted,
     AlreadyPulsing,
     PlayerUnresolved,
+    CoolingDown,
 };
 
 enum class ScanAbandonReason : uint8_t {

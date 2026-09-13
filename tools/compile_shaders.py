@@ -56,7 +56,7 @@ def disassemble_shader(name: str, code: Path, nvdisasm: Path) -> Path:
     validate_gpu_assembly(name, result.stdout)
     return assembly_path
 
-def compile_shaders(uam: Path, nvdisasm: Path, runtime: str, source: Path, output: Path, production: bool = False) -> None:
+def compile_shaders(uam: Path, nvdisasm: Path, runtime: str, source: Path, output: Path, production: bool = False, constrained: bool = False) -> None:
     uam = uam.resolve(strict=True)
     if hashlib.sha256(uam.read_bytes()).hexdigest() != EXPECTED_UAM:
         raise ValueError("Unreviewed compiler binary: update provenance deliberately before use")
@@ -70,7 +70,7 @@ def compile_shaders(uam: Path, nvdisasm: Path, runtime: str, source: Path, outpu
     arrays = ["// Generated from first-party GPLv2 GLSL by an external compiler.",
               "#pragma once", "namespace survey_fidelity::shaders {"]
     receipt = {"compiler_sha256": EXPECTED_UAM, "disassembler_sha256": EXPECTED_NVDISASM,
-               "profile": "production" if production else "playground", "stages": {}}
+               "profile": "production" if production else "playground", "constrained": constrained, "stages": {}}
     for name, stage, filename in (("vert", "vert", "diagnostic.vert"),
                                   ("frag", "frag", "diagnostic.frag"),
                                   ("calibration", "frag", "calibration.frag"),
@@ -81,6 +81,8 @@ def compile_shaders(uam: Path, nvdisasm: Path, runtime: str, source: Path, outpu
         stage_dir = Path(tempfile.mkdtemp(prefix=f"{name}-", dir=output)).resolve()
         shader_text = shader.read_text(encoding="utf-8")
         if name == "frag":
+            if constrained:
+                shader_text = shader_text.replace("#version 450", "#version 450\n#define SF_CONSTRAINED 1")
             if production:
                 shader_text = shader_text.replace("#version 450", "#version 450\n#define SF_DIAGNOSTICS 0")
             shared = (source / "aesthetic_math.inl").read_text(encoding="utf-8")
@@ -129,5 +131,6 @@ if __name__ == "__main__":
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--production", action="store_true")
+    parser.add_argument("--constrained", action="store_true")
     args = parser.parse_args()
-    compile_shaders(args.uam, args.nvdisasm, args.runtime_dir, args.source, args.output, args.production)
+    compile_shaders(args.uam, args.nvdisasm, args.runtime_dir, args.source, args.output, args.production, args.constrained)

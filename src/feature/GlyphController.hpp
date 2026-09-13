@@ -8,6 +8,7 @@
 
 #include "GlyphLife.hpp"
 #include "SurveySweep.hpp"
+#include "SurveyOptions.hpp"
 #include "totk/engine/ActorHandle.hpp"
 
 namespace zonai_survey::feature {
@@ -46,6 +47,12 @@ class GlyphController {
     const GlyphDiagnostics& diagnostics() const { return diagnostics_; }
 
   private:
+#if SURVEY_CONSTRAINED || SURVEY_TUNING
+    float range_{options::nextRange()};
+    float scanRange() const { return range_; }
+#else
+    static constexpr float scanRange() { return pure::kMaxRange; }
+#endif
     void gatherFromMap();
     void rebuildRosterCandidates();
     void refreshLivePositions();

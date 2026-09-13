@@ -1,7 +1,10 @@
 # Source code
 
-The matching source snapshot is `zonai-survey-source-v0.1.3.zip`, prepared for
+The matching source snapshot is `zonai-survey-source-v0.1.4.zip`, prepared for
 https://github.com/afiaka87/zonai-survey.
+
+One source snapshot builds both Regular (~440 m / 3 s) and Constrained (180 m / 7 s).
+Both platform layouts of a flavor use the same executable. See BUILDING.md for flags.
 
 Program code is GPL-2.0-only. LICENSE and NOTICE are retained. The eight runtime
 font and shader data files are included only in the installers and retain their

@@ -12,6 +12,7 @@
 #include "GlyphIndex.hpp"
 #include "GlyphRenderer.hpp"
 #include "PulseLattice.hpp"
+#include "SurveyOptions.hpp"
 #include "totk/engine/ActorRoster.hpp"
 #include "totk/engine/Scene.hpp"
 #include "totk/engine/Transform.hpp"
@@ -92,6 +93,9 @@ void GlyphController::onPulse(float originX, float originY, float originZ,
     originZ_ = originZ;
     headingX_ = headingX;
     headingZ_ = headingZ;
+#if SURVEY_CONSTRAINED || SURVEY_TUNING
+    range_ = options::nextRange();
+#endif
     active_ = true;
     pulseTick_ = tick_;
 
@@ -110,7 +114,7 @@ void GlyphController::gatherFromMap() {
     std::uint32_t outsideCone = 0;
 
     pure::forEachPlacementNear(
-        originX_, originZ_, pure::kMaxRange,
+        originX_, originZ_, scanRange(),
         [&](const glyphs::Placement& placement, float d2) {
             const float wx = pure::placementWorldX(placement);
             const float wz = pure::placementWorldZ(placement);
@@ -235,7 +239,11 @@ void GlyphController::refreshLivePositions() {
         }
 
         const float d2 = distanceSq(px, pz, originX_, originZ_);
+#if SURVEY_CONSTRAINED || SURVEY_TUNING
+        if (!pure::withinSurveyRange(px-originX_, pz-originZ_, scanRange())) continue;
+#else
         if (d2 > pure::kMaxRange * pure::kMaxRange) continue;
+#endif
         if (!pure::withinCone(px - originX_, pz - originZ_, headingX_, headingZ_, cosHalf)) {
             ++outsideCone;
             continue;

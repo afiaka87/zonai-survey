@@ -48,6 +48,34 @@ class MemoryProfileTests(unittest.TestCase):
         self.assertEqual(sample["phase"], "install")
 
 class ShaderBindingsTests(unittest.TestCase):
+    def test_constrained_range_is_snapshotted_and_clips_surface_and_grass(self):
+        root = Path(__file__).resolve().parents[2]
+        shader = (root / "shaders/diagnostic.frag").read_text(encoding="utf-8")
+        native = (root / "src/surface/FidelityPlayground.cpp").read_text(encoding="utf-8")
+        items = (root / "src/feature/GlyphController.cpp").read_text(encoding="utf-8")
+        self.assertIn("g_pulseRange = zonai_survey::options::nextRange()", native)
+        self.assertIn("uniforms.settings[1] = pulseRange", native)
+        self.assertIn("range_ = options::nextRange()", items)
+        self.assertIn("originX_, originZ_, scanRange()", items)
+        self.assertIn("pure::withinSurveyRange(px-originX_, pz-originZ_, scanRange())", items)
+        self.assertIn("#if SF_CONSTRAINED\n        maxRadius=settings.y;", shader)
+        for prefix in ("color*=", "detail*="):
+            self.assertIn(prefix+"1.0-smoothstep(settings.y-min(8.0,settings.y*0.05),settings.y,", shader)
+
+    def test_cooldown_blocks_before_start_and_only_arms_after_success(self):
+        root = Path(__file__).resolve().parents[2]
+        module = (root / "src/program/modules/zonai-survey/Module.cpp").read_text(encoding="utf-8")
+        trigger = module[module.index("pure::ScanVerdict triggerSurvey() {"):]
+        self.assertLess(trigger.index("g_cooldown.remaining(now)"), trigger.index("g_scan.trigger()"))
+        self.assertLess(trigger.index("if (verdict != pure::ScanVerdict::Accepted) return verdict;"), trigger.index("g_cooldown.start("))
+        self.assertIn("if (verdict == zonai_survey::pure::ScanVerdict::CoolingDown) return;", module)
+        self.assertIn("if (!SURVEY_TUNING || frame.snapshot().freshSampleCount)", module)
+        self.assertIn("#if SURVEY_TUNING\n    constexpr std::uint64_t left", module)
+        self.assertNotIn("#if SURVEY_CONSTRAINED", trigger)
+        self.assertIn("options::cooldownSeconds()", trigger)
+        controller = (root / "src/surface/FidelityScanController.cpp").read_text(encoding="utf-8")
+        self.assertNotIn("ScanVerdict::AlreadyPulsing", controller)
+
     def test_depth_completion_has_no_repeat_reminder_and_keeps_updates(self):
         module = (Path(__file__).resolve().parents[2] / "src/program/modules/zonai-survey/Module.cpp").read_text(encoding="utf-8")
         self.assertNotIn("ZL+Up to scan again", module)

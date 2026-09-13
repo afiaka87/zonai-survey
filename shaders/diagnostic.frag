@@ -3,6 +3,9 @@
 #ifndef SF_DIAGNOSTICS
 #define SF_DIAGNOSTICS 1
 #endif
+#ifndef SF_CONSTRAINED
+#define SF_CONSTRAINED 0
+#endif
 layout(location=0) in vec2 screenUv;
 layout(location=0) out vec4 outColor;
 layout(binding=0) uniform sampler2D sceneDepth;
@@ -78,7 +81,11 @@ vec3 imprintAt(vec3 world,vec3 dx,vec3 dy,vec3 normal,float coherence) {
     SfPaint paint=sfImprint(p.x,p.y,p.z,normal.x,normal.y,normal.z,
         footprint.x,footprint.y,footprint.z,forward,max(forwardFootprint,0.025),
         surfaceStyle.x,surfaceStyle.z,surfaceStyle.w,coherence);
-    return vec3(paint.r,paint.g,paint.b)*paint.a;
+    vec3 color=vec3(paint.r,paint.g,paint.b)*paint.a;
+#if SF_CONSTRAINED
+    color*=1.0-smoothstep(settings.y-min(8.0,settings.y*0.05),settings.y,length(p.xz));
+#endif
+    return color;
 }
 vec3 localAxis(SfSample center,SfSample before,SfSample after,float stride) {
     vec3 p=vec3(center.x,center.y,center.z);
@@ -116,7 +123,11 @@ void main() {
     } else {
         float groundRadius=length((world-scanOrigin.xyz).xz);
         float direction=dot((world-scanOrigin.xyz).xz,scanHeading.xy)/max(groundRadius,0.001);
-        if (scanOrigin.w<0.5 || groundRadius>470.0 || direction<scanHeading.z-0.02) {
+        float maxRadius=470.0;
+#if SF_CONSTRAINED
+        maxRadius=settings.y;
+#endif
+        if (scanOrigin.w<0.5 || groundRadius>maxRadius || direction<scanHeading.z-0.02) {
             discard;
         } else {
             SfSample samples[9];
@@ -191,6 +202,9 @@ void main() {
                         float detail=sfStationaryRing(forward,max(footprint,0.025),surfaceStyle.w)*
                             sfImprintEnvelope(forward,world.y-scanOrigin.y,surfaceStyle.x)*scanMotion.y;
                         detail*=1.0-smoothstep(420.0,450.0,groundRadius);
+#if SF_CONSTRAINED
+                        detail*=1.0-smoothstep(settings.y-min(8.0,settings.y*0.05),settings.y,groundRadius);
+#endif
                         radiance=max(radiance,vec3(0.10,0.78,1.0)*detail);
                     }
                     radiance*=smoothstep(scanHeading.z,scanHeading.z+0.015,direction);
