@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis
 #pragma once
 
 #include <cmath>
@@ -7,9 +6,7 @@
 
 #include "PulseLattice.hpp"
 
-
 namespace zonai_survey::pure {
-
 
 inline constexpr std::uint32_t kWallColumns = 64;
 inline constexpr std::uint32_t kWallRows = 64;
@@ -43,13 +40,11 @@ inline constexpr float kWallRayAdvanceMeters = 0.75f;
 inline constexpr float kWallMinHitTravelMeters = 0.20f;
 inline constexpr float kWallMinLayerSeparationMeters = 1.5f;
 
-
 inline constexpr std::uint32_t kMaxWallSegments = 20000;
 
 inline constexpr float kShallowRedundancyMeters = 2.5f;
 
 inline constexpr float kWallSubmergedMeters = 4.0f;
-
 
 constexpr std::uint32_t wallProbeRow(std::uint32_t index) {
     return index / kWallColumns;
@@ -137,6 +132,7 @@ inline SurveyAngles surveyAnglesFor(float dx, float dy, float dz,
     const float headingLength = std::sqrt(headingLengthSq);
     const float forwardX = headingX / headingLength;
     const float forwardZ = headingZ / headingLength;
+
     const float rightX = forwardZ;
     const float rightZ = -forwardX;
     const float forward = dx * forwardX + dz * forwardZ;
@@ -161,4 +157,4 @@ inline bool inSurveyAngularWindow(float dx, float dy, float dz, float headingX,
     return azimuth <= halfAzimuth && elevation <= halfElevation;
 }
 
-}  
+}

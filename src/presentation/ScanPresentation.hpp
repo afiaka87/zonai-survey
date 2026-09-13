@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis
 #pragma once
 
 #include "ScanVerdicts.hpp"
@@ -26,4 +25,4 @@ inline const char* displayText(pure::ScanAbandonReason reason) {
     return "unspecified";
 }
 
-}  
+}

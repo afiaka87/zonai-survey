@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 
 #pragma once
@@ -14,6 +15,7 @@ struct Totk121Offsets {
     static constexpr const char* kBuildId = "9B4E43650501A4D4";
 
     static constexpr core::ImageOffset kSceneModuleInstance{0x04728538};
+
     static constexpr core::ImageOffset kProcessManagerIndirect{0x0462DED8};
     static constexpr core::ImageOffset kProcessListLock{0x02B17270};
     static constexpr core::ImageOffset kProcessListUnlock{0x02B17280};
@@ -66,6 +68,7 @@ inline constexpr std::ptrdiff_t kNpadSamplingNumber = 0x00;
 inline constexpr std::ptrdiff_t kNpadButtons = 0x08;
 inline constexpr std::ptrdiff_t kNpadLeftStickX = 0x10;
 inline constexpr std::ptrdiff_t kNpadLeftStickY = 0x14;
+
 inline constexpr std::ptrdiff_t kNpadRightStickX = 0x18;
 inline constexpr std::ptrdiff_t kNpadRightStickY = 0x1c;
 
@@ -84,6 +87,6 @@ inline constexpr std::ptrdiff_t kGameDataQueueControl = 56;
 inline constexpr std::uint32_t kGameDataQueueIndexMask = 0xFFFFF;
 inline constexpr std::int32_t kGameDataQueueHeadroom = 2;
 
-} 
+}
 
-} 
+}

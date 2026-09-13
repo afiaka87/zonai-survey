@@ -34,9 +34,13 @@ add_executable(zonai_survey_pure_tests
   test_survey_cue.cpp
   test_depth_lift.cpp
   test_perf_report.cpp
+  test_packed_glyphs.cpp
   test_glyph_tables.cpp
   ../src/generated/GlyphTables.cpp
 )
+include(../cmake/PackedGlyphs.cmake)
+survey_add_packed_glyphs(zonai_survey_pure_tests)
+
 target_link_libraries(zonai_survey_pure_tests PRIVATE doctest::doctest)
 target_include_directories(zonai_survey_pure_tests PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../src/pure"
@@ -52,5 +56,6 @@ else()
 endif()
 
 enable_testing()
+add_subdirectory(surface)
 include("${DOCTEST_CMAKE}")
 doctest_discover_tests(zonai_survey_pure_tests)

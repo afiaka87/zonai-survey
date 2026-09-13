@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <atomic>
@@ -12,9 +14,9 @@
 
 namespace zonai_survey::engine {
 
-// Gameplay reads completed samples after the physics worker publishes them.
 class TerrainProber {
   public:
+
     void arm(float linkX, float linkY, float linkZ, float headingX, float headingZ,
              std::uint32_t sceneGeneration);
 
@@ -46,14 +48,17 @@ class TerrainProber {
     std::uint32_t service(RaycastFn original, const void* liveQueryObject);
 
   private:
+
     pure::TerrainSample castNode(RaycastFn original, std::uint32_t index);
 
     bool castSegment(RaycastFn original, float fromX, float fromY, float fromZ, float toX,
                      float toY, float toZ, pure::TerrainSample& out);
 
     std::atomic<bool> armed_{false};
+
     std::atomic<std::uint32_t> recovered_{0};
     std::atomic<std::uint32_t> rangeClipped_{0};
+
     std::atomic<std::uint32_t> raycasts_{0};
     std::atomic<std::uint64_t> sampleTicks_{0};
     std::atomic<std::uint32_t> authorised_{0};
@@ -73,4 +78,4 @@ class TerrainProber {
     alignas(16) unsigned char queryObject_[totk::engine::layout::kRaycastObjectSize]{};
 };
 
-}  
+}

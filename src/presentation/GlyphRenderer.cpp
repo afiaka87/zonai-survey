@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 #include <lib.hpp>
 
@@ -95,7 +96,7 @@ bool projectToScreen(const sead::Matrix34f& view, const sead::Matrix44f& proj, f
     if (ndcX < -1.0f || ndcX > 1.0f || ndcY < -1.0f || ndcY > 1.0f) return false;
 
     outX = (ndcX * 0.5f + 0.5f) * kScreenWidth;
-    outY = (0.5f - ndcY * 0.5f) * kScreenHeight;  
+    outY = (0.5f - ndcY * 0.5f) * kScreenHeight;
     return true;
 }
 
@@ -133,7 +134,7 @@ void drawIconProbe(lotuskit::TextWriterExt* writer) {
     }
 }
 
-}  
+}
 
 void publishGlyphs(const GlyphFrame& frame) {
     const std::uint32_t back = 1u - g_front.load(std::memory_order_relaxed);
@@ -171,6 +172,7 @@ void drawGlyphs(agl::lyr::Layer* layer, const agl::lyr::RenderInfo& info,
 
     const GlyphFrame& frame = g_frames[g_front.load(std::memory_order_acquire)];
     if (!frame.count) return;
+
     engine::perf::Timer glyphTimer(engine::perf::drawGlyphText);
 
     if (!g_loggedLayer) {
@@ -256,4 +258,4 @@ void drawGlyphs(agl::lyr::Layer* layer, const agl::lyr::RenderInfo& info,
     g_offscreen.store(offscreen, std::memory_order_release);
 }
 
-}  
+}

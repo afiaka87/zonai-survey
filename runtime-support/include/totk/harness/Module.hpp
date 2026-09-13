@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 
 #pragma once
@@ -23,7 +24,8 @@ struct Module {
     void (*onRaycast)(RaycastFn original, const void* from, const void* to,
                       const void* object, const void* out, std::uint32_t mask,
                       std::uint32_t flag);
+
     const char* (*aim)();
 };
 
-} 
+}

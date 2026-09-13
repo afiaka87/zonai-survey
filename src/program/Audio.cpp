@@ -1,15 +1,19 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 
-#include <lib.hpp>   
+#include <lib.hpp>
 #include "Audio.hpp"
 
 namespace audio {
 namespace {
 
 namespace off {
+
     constexpr ptrdiff_t SLinkSearchEmit   = 0x00B026E0;
+
     constexpr ptrdiff_t SearchAndEmitImpl = 0x009FFE64;
+
     constexpr ptrdiff_t SlinkSystemSlot   = 0x00462F2B0;
 }
 
@@ -36,8 +40,8 @@ void* g_uiSpeaker = nullptr;
 void* findBankInstanceDirect() {
     const u64 slotAddr = g_mainBase + off::SlinkSystemSlot;
     const u64 holder = *(u64*)slotAddr;   if (!okPtr(holder)) { return nullptr; }
-    const u64 system = *(u64*)holder;     if (!okPtr(system)) { return nullptr; }   
-    if (*(u32*)(system + 32) == 0) { return nullptr; }                              
+    const u64 system = *(u64*)holder;     if (!okPtr(system)) { return nullptr; }
+    if (*(u32*)(system + 32) == 0) { return nullptr; }
     const int nodeOff = *(int*)(system + 36);
     const u64 anchor  = system + 16;
     u64 node = *(u64*)(system + 24);
@@ -46,9 +50,9 @@ void* findBankInstanceDirect() {
         const u64 user = node - (u64)nodeOff;
         const char* name = *(char**)(user + 16);
         if (okPtr((u64)name) && streqBounded(name, "UI_GlobalSound")) {
-            if (*(int*)(user + 48) < 1) { return nullptr; }          
+            if (*(int*)(user + 48) < 1) { return nullptr; }
             const u64 head = *(u64*)(user + 32);
-            if (head == user + 32 || !okPtr(head)) { return nullptr; }   
+            if (head == user + 32 || !okPtr(head)) { return nullptr; }
             const u64 inst = head - (u64)(*(int*)(user + 52));
             return looksLikeSlinkInstance(inst) ? (void*)inst : nullptr;
         }
@@ -70,13 +74,14 @@ void* resolveUiGlobalSpeaker() {
 using SLinkSearchEmitFn = void (*)(void* userInstance, const char* name, void* out);
 
 #if AUDIO_DEBUG_CAPTURE
+
 constexpr const char* BANK_LOCK_CUES[] = {
     "PickUp_Default", "mc_HeartUp_Short", "mc_ExtraGanbari_Up", "mc_PlusMenuOpen",
 };
 
-u32 g_emitTotal   = 0;   
-u32 g_capUnique   = 0;   
-u32 g_bankLocks   = 0;   
+u32 g_emitTotal   = 0;
+u32 g_capUnique   = 0;
+u32 g_bankLocks   = 0;
 
 inline u32 djb2Hash(const char* s) {
     u32 h = 5381;
@@ -136,9 +141,9 @@ HOOK_DEFINE_INLINE(SearchAndEmitImplHook) {
         captureEmit((void*)ctx->X[0], (const char*)ctx->X[1]);
     }
 };
-#endif 
+#endif
 
-} 
+}
 
 void installHooks(uintptr_t mainBase) {
     g_mainBase = mainBase;
@@ -167,7 +172,7 @@ namespace debug {
     unsigned emitTotal()      { return g_emitTotal; }
     unsigned uniqueCueCount() { return g_capUnique; }
     unsigned bankLockCount()  { return g_bankLocks; }
-} 
+}
 #endif
 
-} 
+}

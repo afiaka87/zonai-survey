@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis
 #include <doctest.h>
 
 #include <cmath>
@@ -24,9 +23,10 @@ TerrainSample wallHit(float x, float y, float z, float distance,
     return sample;
 }
 
-}  
+}
 
 TEST_CASE("the cliff fan's shipped geometry is what the reducers assume") {
+
     CHECK(kWallColumns == 64);
     CHECK(kWallRows == 64);
     CHECK(kWallProbes == kWallColumns * kWallRows);
@@ -34,6 +34,7 @@ TEST_CASE("the cliff fan's shipped geometry is what the reducers assume") {
     CHECK(kWallSamples == kWallProbes * kWallDepthLayers);
     CHECK(kWallMaxRaycastsPerProbe == 7);
     CHECK(kWallJoinScale == doctest::Approx(1.75f));
+
     CHECK(kWallMinElevation < 0.0f);
     CHECK(kWallMaxElevation > 0.0f);
     CHECK(wallAzimuthStep() > 0.0f);
@@ -167,7 +168,6 @@ TEST_CASE("layer matching refuses to bridge foreground to background") {
                            WallEdgeAxis::Across, out, kWallDepthLayers) == 0);
 }
 
-
 namespace {
 
 struct WallCell {
@@ -198,6 +198,7 @@ std::vector<TerrainSample> surfaceRun(const std::vector<float>& depths) {
         sample.y = 0.0f;
         sample.z = depths[i];
         sample.distance = depths[i];
+
         sample.normalX = tangentZ;
         sample.normalY = 0.0f;
         sample.normalZ = -tangentX;
@@ -249,7 +250,7 @@ std::vector<float> driftingProfile(std::size_t cells, float base, float step,
     return depths;
 }
 
-}  
+}
 
 TEST_CASE("a track follows a straight wall and a curved one without holes") {
 
@@ -272,6 +273,7 @@ TEST_CASE("a track follows a straight wall and a curved one without holes") {
 }
 
 TEST_CASE("a track refuses to walk off the face it is following") {
+
     const std::size_t onset = 6;
     const auto run = surfaceRun(driftingProfile(24, 100.0f, 2.2f, onset));
 
@@ -337,6 +339,7 @@ TEST_CASE("the track observer reports a tail assignment after samples run out") 
 }
 
 TEST_CASE("a track keeps its own layer when a neighbour offers a closer one") {
+
     const std::vector<float> deep(8, 100.0f);
     const std::vector<float> ledge(8, 98.6f);
     auto cells = cellsOf(surfaceRun(ledge));
@@ -348,10 +351,12 @@ TEST_CASE("a track keeps its own layer when a neighbour offers a closer one") {
         advanceWallTracks(tracks, cell.layers, cell.count,
                           WallEdgeAxis::Across, produced, kWallDepthLayers);
     REQUIRE(tracks.count == 2);
+
     CHECK(tracks.tracks[0].head.distance < tracks.tracks[1].head.distance);
     CHECK(tracks.tracks[1].head.distance == doctest::Approx(100.0f));
 }
 TEST_CASE("advancing tracks never invents a join the pairwise rule rejects") {
+
     std::vector<float> receding{};
     for (std::uint32_t step = 0; step < 20; ++step)
         receding.push_back(40.0f + static_cast<float>(step));
@@ -368,6 +373,7 @@ TEST_CASE("advancing tracks never invents a join the pairwise rule rejects") {
         const std::uint32_t count =
             advanceWallTracks(tracks, cell.layers, cell.count,
                               WallEdgeAxis::Across, produced, kWallDepthLayers);
+
         for (std::uint32_t i = 0; i < count; ++i) {
             bool justified = false;
             for (std::uint32_t t = 0; t < previous.count && !justified; ++t)
@@ -383,6 +389,7 @@ TEST_CASE("advancing tracks never invents a join the pairwise rule rejects") {
 }
 
 TEST_CASE("the buried judge surfaces a deep sample only when a nearby ray sees the same surface") {
+
     std::vector<TerrainSample> samples(kWallSamples);
     std::vector<std::uint8_t> counts(kWallProbes, 0);
 
@@ -394,8 +401,10 @@ TEST_CASE("the buried judge surfaces a deep sample only when a nearby ray sees t
     samples[wallSampleIndex(probeA, 0)] = wallHit(0.0f, 0.0f, 20.0f, 20.0f);
     samples[wallSampleIndex(probeA, 1)] = wallHit(0.0f, 0.0f, 25.0f, 25.0f);
     counts[probeA] = 2;
+
     samples[wallSampleIndex(probeB, 0)] = wallHit(0.5f, 0.0f, 25.0f, 25.0f);
     counts[probeB] = 1;
+
     samples[wallSampleIndex(probeC, 0)] = wallHit(30.0f, 0.0f, 20.0f, 20.0f);
     samples[wallSampleIndex(probeC, 1)] = wallHit(30.0f, 0.0f, 25.0f, 25.0f);
     counts[probeC] = 2;
@@ -407,6 +416,7 @@ TEST_CASE("the buried judge surfaces a deep sample only when a nearby ray sees t
     CHECK(surfaced[0] == 3);
     CHECK(buried[0] == 0);
     CHECK_FALSE(samples[wallSampleIndex(probeA, 0)].buried);
+
     CHECK_FALSE(samples[wallSampleIndex(probeA, 1)].buried);
     CHECK(samples[wallSampleIndex(probeC, 1)].buried);
     CHECK(surfaced[1] == 1);
@@ -414,6 +424,7 @@ TEST_CASE("the buried judge surfaces a deep sample only when a nearby ray sees t
 }
 
 TEST_CASE("a parallel face in front does not surface a deep sample") {
+
     std::vector<TerrainSample> samples(kWallSamples);
     std::vector<std::uint8_t> counts(kWallProbes, 0);
 
@@ -424,6 +435,7 @@ TEST_CASE("a parallel face in front does not surface a deep sample") {
     samples[wallSampleIndex(probeA, 0)] = wallHit(0.0f, 0.0f, 23.0f, 23.0f);
     samples[wallSampleIndex(probeA, 1)] = wallHit(0.0f, 0.0f, 25.0f, 25.0f);
     counts[probeA] = 2;
+
     samples[wallSampleIndex(probeB, 0)] = wallHit(0.5f, 0.0f, 23.0f, 23.0f);
     counts[probeB] = 1;
 
@@ -435,14 +447,14 @@ TEST_CASE("a parallel face in front does not surface a deep sample") {
     CHECK(surfaced[1] == 0);
 }
 
-
 TEST_CASE("a two-cell heal chord needs the two-cell allowance it claims") {
+
     TerrainSample a = wallHit(0.0f, 5.0f, 120.0f, 120.0f);
     const float allowance1 = wallJoinAllowance(a, a,
                                                WallEdgeAxis::Across, 1.0f);
     const float allowance2 = wallJoinAllowance(a, a,
                                                WallEdgeAxis::Across, 2.0f);
-    REQUIRE(allowance2 > allowance1);  
+    REQUIRE(allowance2 > allowance1);
     const float separation = 0.5f * (allowance1 + allowance2);
     const TerrainSample b = wallHit(separation, 5.0f, 120.0f, 120.0f);
     CHECK_FALSE(wallLinkable(a, b, WallEdgeAxis::Across, 1.0f));
@@ -453,6 +465,7 @@ TEST_CASE("a two-cell heal chord needs the two-cell allowance it claims") {
 }
 
 TEST_CASE("shallow rows join real gentle surfaces and carry their own origin") {
+
     TerrainSample a{true, 0.0f, 5.0f, 12.0f, 0.9f, 12.0f};
     TerrainSample b{true, 1.0f, 5.0f, 12.0f, 0.9f, 12.0f};
     ScanSegment out{};
@@ -460,9 +473,11 @@ TEST_CASE("shallow rows join real gentle surfaces and carry their own origin") {
     CHECK(out.origin == SegmentOrigin::ShallowGround);
     CHECK(out.isArc);
     CHECK(out.revealWave >= 1.0f);
+
     TerrainSample dropped = b;
     dropped.y = 0.0f;
     CHECK(reduceShallowAcross(a, dropped, &out) == 0);
+
     TerrainSample far = b;
     far.x = 200.0f;
     CHECK(reduceShallowAcross(a, far, &out) == 0);
@@ -470,6 +485,7 @@ TEST_CASE("shallow rows join real gentle surfaces and carry their own origin") {
 }
 
 TEST_CASE("wallRayFor is exactly wallRayForAngles at the base angles") {
+
     for (const std::uint32_t index : {0u, 100u, 2048u, 4095u}) {
         const WallRay a = wallRayFor(index, 12.0f, -30.0f, 250.0f,
                                      0.6f, 0.8f);

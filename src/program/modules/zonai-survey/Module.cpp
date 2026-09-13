@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #include <lib.hpp>
 
 #include "ZonaiSurveyModule.hpp"
@@ -26,6 +28,7 @@ constexpr std::uint64_t BTN_ZL = 1ull << 8;
 constexpr std::uint64_t BTN_UP = 1ull << 13;
 
 zonai_survey::feature::ScanController g_scan{};
+
 zonai_survey::feature::GlyphController g_glyphs{};
 totk::engine::NpadReader g_npad{};
 std::uint64_t g_previousButtons = 0;
@@ -100,6 +103,7 @@ void moduleEnter() {
 
 void serviceSurveyInput(const totk::engine::NpadFrame& frame, std::uint64_t buttons,
                         std::uint64_t pressed) {
+
     if ((buttons & BTN_ZL) != 0) g_ownedSurveyButton |= buttons & BTN_UP;
     frame.maskOwnedButtons(g_ownedSurveyButton);
 
@@ -117,6 +121,7 @@ void serviceSurveyCompletion() {
         zonai_survey::engine::perf::Timer scanTimer(zonai_survey::engine::perf::gameScan);
         g_scan.tick();
     }
+
     {
         zonai_survey::engine::perf::Timer glyphTimer(zonai_survey::engine::perf::gameGlyphs);
         g_glyphs.tick();
@@ -125,8 +130,10 @@ void serviceSurveyCompletion() {
     const auto state = g_scan.state();
     if (state == zonai_survey::feature::ScanState::Holding &&
         g_previousState == zonai_survey::feature::ScanState::Pulsing) {
+#if !SURVEY_DEPTH_SCAN
         buildReachText(g_scan.diagnostics());
         overlay::showBanner("Survey complete", g_reachText, 180);
+#endif
 
         const auto& glyphs = g_glyphs.diagnostics();
         const auto& cut = glyphs.filtered;
@@ -187,6 +194,7 @@ void flushGamePerf() {
             perf::workerSeen.exchange(0, std::memory_order_relaxed));
         perf::workerCalls.store(0, std::memory_order_relaxed);
     } else {
+
         perf::workerSum.store(0, std::memory_order_relaxed);
         perf::workerCalls.store(0, std::memory_order_relaxed);
         perf::workerSeen.store(0, std::memory_order_relaxed);
@@ -205,8 +213,10 @@ void flushGamePerf() {}
 #endif
 
 void moduleTick(void* npadDevice) {
+
     if (npadDevice) overlay::tick();
     if (!g_ready) return;
+
     flushGamePerf();
     zonai_survey::engine::perf::Timer tickTimer(zonai_survey::engine::perf::gameTick);
 
@@ -227,6 +237,7 @@ bool moduleRequestExit() { return true; }
 const char* moduleStatusText() {
     const auto scanState = g_scan.state();
     if (scanState != zonai_survey::feature::ScanState::Idle) {
+
         return scanState == zonai_survey::feature::ScanState::Pulsing ? "Survey pulse active"
                                                                      : "Survey reading held";
     }
@@ -251,6 +262,7 @@ const char* moduleStatus() {
 
 void moduleOnRaycast(wwpg::RaycastFn original, const void*, const void*, const void* object,
                      const void*, std::uint32_t, std::uint32_t) {
+
     namespace perf = zonai_survey::engine::perf;
     const bool sampled = (perf::workerSeen.fetch_add(1, std::memory_order_relaxed) & 15u) == 0;
     const std::uint64_t probeStart = sampled ? perf::now() : 0;
@@ -259,31 +271,30 @@ void moduleOnRaycast(wwpg::RaycastFn original, const void*, const void*, const v
 }
 
 constexpr wwpg::Module kModule{
-    .name = "Zonai Survey",
+     "Zonai Survey",
 #if SOLO_HARNESS_TEXT
-    .actors = g_objectsText,
-    .controls = g_controlsText,
-    .requirement = g_requirementText,
+     g_objectsText,
+     g_controlsText,
+     g_requirementText,
 #else
-    .actors = nullptr,
-    .controls = nullptr,
-    .requirement = nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
 #endif
-    .init = &moduleInit,
-    .enter = &moduleEnter,
-    .tick = &moduleTick,
-    .requestExit = &moduleRequestExit,
+     &moduleInit,
+     &moduleEnter,
+     &moduleTick,
+     &moduleRequestExit,
 #if SOLO_HARNESS_TEXT
-    .status = &moduleStatus,
+     &moduleStatus,
 #else
-    .status = nullptr,
+     nullptr,
 #endif
-    .onRaycast = &moduleOnRaycast,
-    .aim = nullptr,
+     &moduleOnRaycast,
+     nullptr,
 };
-static_assert(kModule.init && kModule.tick && kModule.onRaycast);
 
-}  
+}
 
 namespace zonai_survey::integration {
 
@@ -296,8 +307,8 @@ pure::ScanVerdict triggerSurvey() {
     return verdict;
 }
 
-}  
+}
 
 namespace wwpg::modules {
 const Module& zonaiSurvey() { return kModule; }
-}  
+}

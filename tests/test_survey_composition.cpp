@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis
+
 #include <doctest.h>
 
 #include <cmath>
@@ -44,11 +44,13 @@ std::vector<ScanSegment> mixedFrame() {
     for (std::uint32_t ring = 1; ring < kRings; ++ring) {
         const float wave = waveArrivalOf(ring);
         for (int arc = 0; arc < 2; ++arc) {
+
             for (std::uint32_t spoke = 0; spoke < 12; ++spoke) {
                 const SlopeBand band =
                     static_cast<SlopeBand>((spoke * 5u + ring) % kSlopeBandCount);
                 segments.push_back(segmentOf(SegmentOrigin::Ground, band, arc == 1, wave));
             }
+
             const SegmentOrigin layers[] = {SegmentOrigin::WallNear, SegmentOrigin::WallMid,
                                             SegmentOrigin::WallFar};
             for (std::uint32_t i = 0; i < 3; ++i) {
@@ -93,9 +95,10 @@ float colorGap(const SurveyRgba& a, const SurveyRgba& b) {
     return std::sqrt(dr * dr + dg * dg + db * db);
 }
 
-}  
+}
 
 TEST_CASE("the composed picture is across lines on the ground, a mesh on cliffs") {
+
     const SegmentOrigin ground[] = {SegmentOrigin::Ground,
                                     SegmentOrigin::ShallowGround};
     const SegmentOrigin cliff[] = {SegmentOrigin::WallNear, SegmentOrigin::WallMid,
@@ -111,9 +114,11 @@ TEST_CASE("the composed picture is across lines on the ground, a mesh on cliffs"
 }
 
 TEST_CASE("a cliff line is tagged with the surface it was found on") {
+
     CHECK(wallOriginFor(0) == SegmentOrigin::WallNear);
     CHECK(wallOriginFor(1) == SegmentOrigin::WallMid);
     CHECK(wallOriginFor(2) == SegmentOrigin::WallFar);
+
     CHECK(wallOriginFor(9) == SegmentOrigin::WallFar);
 
     CHECK_FALSE(originIsWall(SegmentOrigin::Ground));
@@ -124,6 +129,7 @@ TEST_CASE("a cliff line is tagged with the surface it was found on") {
 }
 
 TEST_CASE("the buried filter removes exactly the buried cliff lines") {
+
     const SegmentOrigin origins[] = {
         SegmentOrigin::Ground,   SegmentOrigin::ShallowGround,
         SegmentOrigin::WallNear, SegmentOrigin::WallMid,
@@ -139,6 +145,7 @@ TEST_CASE("the buried filter removes exactly the buried cliff lines") {
 }
 
 TEST_CASE("cliff lines are marked buried only when both ends are buried") {
+
     const auto sampleFacing = [](float x, bool buried) {
         TerrainSample sample{};
         sample.hit = true;
@@ -167,6 +174,7 @@ TEST_CASE("cliff lines are marked buried only when both ends are buried") {
 }
 
 TEST_CASE("shallow-ground lines route as ground, not as cliff") {
+
     ScanSegment shallow{};
     shallow.isArc = true;
     shallow.origin = SegmentOrigin::ShallowGround;
@@ -178,12 +186,14 @@ TEST_CASE("shallow-ground lines route as ground, not as cliff") {
 }
 
 TEST_CASE("a cliff row and a terrain row of the same slope look identical") {
+
     ScanSegment wall{};
     wall.slopeBand = SlopeBand::Vertical;
     for (const SegmentOrigin origin : {SegmentOrigin::WallNear, SegmentOrigin::WallMid,
                                        SegmentOrigin::WallFar}) {
         wall.origin = origin;
         CHECK(surveyLaneFor(wall) == SlopeLane::Warm);
+
         wall.buried = true;
         CHECK(surveyLaneFor(wall) == SlopeLane::Warm);
         wall.buried = false;
@@ -207,16 +217,19 @@ TEST_CASE("a cliff row and a terrain row of the same slope look identical") {
 }
 
 TEST_CASE("the slope ramp runs one way, and its ends are unmistakable") {
+
     const SurveyRgba flattest = laneStartColor(laneIndex(SlopeLane::Cool));
     const SurveyRgba steepest = laneEndColor(laneIndex(SlopeLane::Warm));
     const SurveyRgba coolEnd = laneEndColor(laneIndex(SlopeLane::Cool));
     const SurveyRgba warmStart = laneStartColor(laneIndex(SlopeLane::Warm));
 
     CHECK(colorGap(flattest, steepest) > 0.35f);
+
     CHECK(colorGap(coolEnd, warmStart) < 0.25f);
 }
 
 TEST_CASE("composing the frame is what makes a lane cost one draw") {
+
     const std::vector<ScanSegment> composed = compose(mixedFrame());
     REQUIRE(framePackedForBatching(composed.data(),
                                    static_cast<std::uint32_t>(composed.size())));
@@ -225,5 +238,6 @@ TEST_CASE("composing the frame is what makes a lane cost one draw") {
     const std::uint32_t lines = linesIn(composed, tick);
     REQUIRE(lines > 0);
     CHECK(groups > 0);
+
     CHECK(groups < lines);
 }

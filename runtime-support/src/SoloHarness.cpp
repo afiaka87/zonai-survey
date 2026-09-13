@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 
 #include "totk/harness/SoloHarness.hpp"
@@ -41,7 +42,7 @@ void publishHud() {
     overlay::hud::end();
 }
 #endif
-#endif 
+#endif
 }
 
 void init(std::uintptr_t mainBase, const wwpg::Module& module) {
@@ -77,6 +78,6 @@ void tick(void* npadDevice) {
         publishHud();
 #endif
     }
-#endif 
+#endif
 }
 }

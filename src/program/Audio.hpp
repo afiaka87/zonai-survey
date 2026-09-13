@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 
 #pragma once
@@ -20,11 +21,12 @@ namespace audio {
     void primeBank();
 
 #if AUDIO_DEBUG_CAPTURE
+
     namespace debug {
-        unsigned emitTotal();      
-        unsigned uniqueCueCount(); 
-        unsigned bankLockCount();  
+        unsigned emitTotal();
+        unsigned uniqueCueCount();
+        unsigned bankLockCount();
     }
 #endif
 
-} 
+}

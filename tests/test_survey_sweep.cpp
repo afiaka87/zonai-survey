@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis
+
 #include <doctest.h>
 
 #include <cmath>
@@ -13,8 +13,6 @@
 
 using namespace zonai_survey::pure;
 
-
-
 TEST_CASE("the sweep front travels forward and never reverses") {
     {
         float previous = -1.0f;
@@ -23,6 +21,7 @@ TEST_CASE("the sweep front travels forward and never reverses") {
             CHECK(front >= previous);
             previous = front;
         }
+
         CHECK(sweepFront(0) == doctest::Approx(0.0f));
         CHECK(sweepFront(kSweepEndTicks) >=
               static_cast<float>(kRings) + kSweepBandRings - 0.001f);
@@ -30,6 +29,7 @@ TEST_CASE("the sweep front travels forward and never reverses") {
 }
 
 TEST_CASE("the sweep slows through the middle and hurries at both ends") {
+
     const auto speed = [](float u) {
         const float step = 0.002f;
         return (sweepEase(u + step) - sweepEase(u - step)) / (2.0f * step);
@@ -39,10 +39,11 @@ TEST_CASE("the sweep slows through the middle and hurries at both ends") {
     const float late = speed(0.90f);
     CHECK(middle < early);
     CHECK(middle < late);
-    CHECK(middle > 0.0f);  
+    CHECK(middle > 0.0f);
 }
 
 TEST_CASE("no complete lattice is ever on screen at once") {
+
     {
         for (std::uint32_t tick = 0; tick <= kSweepEndTicks; ++tick) {
             std::uint32_t lit = 0;
@@ -57,11 +58,13 @@ TEST_CASE("no complete lattice is ever on screen at once") {
 }
 
 TEST_CASE("the band erases behind itself and leaves nothing at the end") {
+
     const float ring = 6.0f;
     std::uint32_t passed = 0;
     for (std::uint32_t tick = 0; tick <= kSweepEndTicks; ++tick) {
         const bool lit = sweepAlpha(ring, tick) > kAlphaCutoff;
         if (!lit && passed != 0) {
+
             for (std::uint32_t later = tick; later <= kSweepEndTicks; ++later)
                 CHECK(sweepAlpha(ring, later) <= kAlphaCutoff);
             break;
@@ -80,6 +83,7 @@ TEST_CASE("a swept scan outlives its band but not by much") {
 }
 
 TEST_CASE("the band is always inside the data the pulse already measured") {
+
     const std::uint32_t dataComplete = 32;
         CHECK(sweepFront(dataComplete) < 12.0f);
 }
@@ -87,17 +91,23 @@ TEST_CASE("the frame budget bounds every producer") {
     CHECK(kMaxGroundSegments >= kWorstCaseArcs + kWorstCaseRibs);
     CHECK(kMaxWallSegments >= 18800u);
     CHECK(kMaxDrawnSegments < kMaxGroundSegments + kMaxWallSegments);
+
     CHECK(kWorstCaseArcs + kWorstCaseRibs <= kMaxDrawnSegments);
+
     CHECK(kSurveyRingBytes >=
           kRingFramesInFlight *
               surveyBeamRingBytesPerFrame(kMaxDrawnSegments, kMaxSurveyGroups));
+
     CHECK(kSurveyRingBytes <= 48u * 1024u * 1024u);
 }
 TEST_CASE("the afterglow holds at full while the band runs, then fades out") {
+
     CHECK(sweepAfterglow(-0.5f, 0u) == doctest::Approx(0.0f));
     CHECK(sweepAfterglow(-0.5f, kSweepEndTicks) == doctest::Approx(0.0f));
+
     CHECK(sweepAfterglow(0.0f, 1u) == doctest::Approx(kCrestHoldLevel));
     CHECK(sweepAfterglow(40.0f, kSweepEndTicks) == doctest::Approx(kCrestHoldLevel));
+
     float previous = kCrestHoldLevel;
     for (std::uint32_t tick = kSweepEndTicks + 3u;
          tick < kSweepEndTicks + kCrestFadeTicks; tick += 3u) {
@@ -111,6 +121,7 @@ TEST_CASE("the afterglow holds at full while the band runs, then fades out") {
 }
 
 TEST_CASE("a crest line is brighter than any ordinary line beside it") {
+
     const float ring = 6.0f;
     bool everPassed = false;
     for (std::uint32_t tick = 0; tick <= kSweepEndTicks; ++tick) {
@@ -122,7 +133,6 @@ TEST_CASE("a crest line is brighter than any ordinary line beside it") {
     }
     CHECK(everPassed);
 }
-
 
 TEST_CASE("the birth warp is monotone, fixes both ends, and inverts") {
     CHECK(sweepBirthWarp(0.0f) == doctest::Approx(0.0f));
@@ -137,16 +147,20 @@ TEST_CASE("the birth warp is monotone, fixes both ends, and inverts") {
 }
 
 TEST_CASE("the wave is born slowly enough at Link's feet to be seen") {
+
     const float ringZero = waveArrivalOf(0);
     const float toRingZero = sweepTicksToReach(ringZero);
     const float toRingFive = sweepTicksToReach(waveArrivalOf(5));
     CHECK(toRingZero > 8.0f);
     CHECK(toRingFive > 30.0f);
+
     CHECK(sweepFront(kSweepEndTicks) >=
           static_cast<float>(kRings) + kSweepBandRings - 0.01f);
+
     CHECK(toRingFive < 110.0f);
 }
 TEST_CASE("every crest line has finished fading before the scan expires") {
+
         for (std::uint32_t ring = 1; ring <= kRings; ++ring)
             CHECK(sweepCrestlineAlpha(static_cast<float>(ring),
                                       kSweepLifetimeTicks - 1u) <=
@@ -154,14 +168,17 @@ TEST_CASE("every crest line has finished fading before the scan expires") {
 }
 
 TEST_CASE("the icon clock lands where the band actually is") {
+
     {
         for (const float wave :
              {0.25f, 0.5f, 0.75f, 1.0f, 8.5f, 17.0f, 30.0f, 34.0f}) {
             const float tick = sweepTicksToReach(wave);
+
             CHECK(sweepFrontAt(tick) ==
                   doctest::Approx(wave).epsilon(0.001f));
         }
     }
+
     CHECK(sweepTicksToReach(0.0f) == doctest::Approx(0.0f));
     float previous = 0.0f;
     for (const float wave : {1.0f, 8.5f, 17.0f, 30.0f, 34.0f}) {
@@ -172,6 +189,7 @@ TEST_CASE("the icon clock lands where the band actually is") {
 }
 
 TEST_CASE("the ease curve extends linearly past its end instead of clamping") {
+
     CHECK(sweepEase(1.0f) == doctest::Approx(1.0f));
     const float slope = 1.0f + kSweepEase;
     CHECK(sweepEase(1.2f) == doctest::Approx(1.0f + 0.2f * slope));
@@ -179,6 +197,7 @@ TEST_CASE("the ease curve extends linearly past its end instead of clamping") {
 }
 
 TEST_CASE("the slope colour is a gradient at band joins and exact at band hearts") {
+
     CHECK(continuousSlopeRate(0.10f, SlopeBand::Level) == slopeRate(SlopeBand::Level));
     CHECK(continuousSlopeRate(0.30f, SlopeBand::Rolling) == slopeRate(SlopeBand::Rolling));
     CHECK(continuousSlopeRate(0.50f, SlopeBand::Inclined) == slopeRate(SlopeBand::Inclined));

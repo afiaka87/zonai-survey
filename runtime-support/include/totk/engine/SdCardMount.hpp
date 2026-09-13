@@ -10,4 +10,4 @@ enum class SdCardMountResult {
 
 [[nodiscard]] SdCardMountResult ensureSdCardMounted();
 
-}  
+}

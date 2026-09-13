@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include "totk/core/Units.hpp"
 
 namespace totk::render {
 
-// Addresses and layouts target TotK 1.2.1 build 9B4E43650501A4D4.
 struct DrawOffsets {
     static constexpr const char* kGameVersion = "1.2.1";
     static constexpr const char* kBuildId = "9B4E43650501A4D4";
@@ -20,7 +21,6 @@ struct DrawOffsets {
     static constexpr totk::core::ImageOffset kDrawLineImm{0x00D977E8};
 
     static constexpr totk::core::ImageOffset kDrawTriangleImm{0x021F6350};
-
 
     static constexpr totk::core::ImageOffset kSetUniformBlock{0x0096D8A0};
 
@@ -47,10 +47,10 @@ struct PrimitiveSymbols {
 
 inline constexpr std::uintptr_t kImmDrawModuleSlot = 0x046381D8;
 
-inline constexpr int kImmModuleProgramCount = 0x08;   
-inline constexpr int kImmModuleProgramTable = 0x10;   
+inline constexpr int kImmModuleProgramCount = 0x08;
+inline constexpr int kImmModuleProgramTable = 0x10;
 inline constexpr unsigned int kImmProgramCountMin = 0x3D;
-inline constexpr int kImmLineProgram = 0x1E0;         
+inline constexpr int kImmLineProgram = 0x1E0;
 
 inline constexpr unsigned int kImmColourSlot = 3;
 inline constexpr unsigned int kImmVertexSlot = 4;
@@ -60,6 +60,7 @@ inline constexpr std::uintptr_t kLineWidthContextSlot = 0x0462EF90;
 inline constexpr std::uintptr_t kDrawArraysSlot = 0x04616F28;
 inline constexpr int kDrawContextCommandBuffer = 0xB8;
 inline constexpr int kPrimitiveLines = 1;
+
 inline constexpr int kPrimitiveTriangleStrip = 5;
 
 inline constexpr int kDrawerWithinRenderer = 0x08;
@@ -67,13 +68,12 @@ inline constexpr std::uintptr_t kPrimitiveDrawMgrSlot = 0x0463CD48;
 inline constexpr int kDrawMgrBlockExhausted = 1880;
 inline constexpr int kDrawMgrCapacity = 1888;
 
-
 inline constexpr std::uintptr_t kPrimitiveRingAlloc = 0x021C08E0;
 
-inline constexpr int kDrawMgrRingBuffer = 1824;   
-inline constexpr int kDrawMgrRingCpuBase = 1872;  // void*, the ring's CPU base
-inline constexpr int kDrawMgrRingCursor = 1884;   // u32, the atomic bump cursor
-inline constexpr int kDrawMgrRingRetire = 1892;   
+inline constexpr int kDrawMgrRingBuffer = 1824;
+inline constexpr int kDrawMgrRingCpuBase = 1872;
+inline constexpr int kDrawMgrRingCursor = 1884;
+inline constexpr int kDrawMgrRingRetire = 1892;
 
 inline constexpr int kDrawMgrVertexAttribState = 440;
 inline constexpr int kDrawMgrVertexStreamState = 456;
@@ -101,8 +101,8 @@ inline constexpr int kSceneContextRenderBuffer = 0x540;
 
 inline constexpr int kOpaquePassPhase = 0;
 
-inline constexpr int kSceneContextViewIndex = 0x08;  
-inline constexpr int kSceneContextLayer = 0x5F0;     
+inline constexpr int kSceneContextViewIndex = 0x08;
+inline constexpr int kSceneContextLayer = 0x5F0;
 
 inline constexpr int kLayerCamera = 0x78;
 inline constexpr int kLayerProjection = 0x80;
@@ -126,4 +126,4 @@ inline constexpr unsigned char kGcDepthFuncAlways = 8;
 
 inline constexpr const char* kGameplayLayer = "Main_3D_0";
 
-}  
+}

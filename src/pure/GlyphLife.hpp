@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <cstdint>
@@ -9,8 +11,8 @@
 
 namespace zonai_survey::pure {
 
-inline constexpr std::uint32_t kGlyphHoldTicks = 1200;  // ~20 s at ~60 Hz
-inline constexpr std::uint32_t kGlyphFadeTicks = 600;   // ~10 s at ~60 Hz
+inline constexpr std::uint32_t kGlyphHoldTicks = 1200;
+inline constexpr std::uint32_t kGlyphFadeTicks = 600;
 inline constexpr std::uint32_t kGlyphLifeTicks = kGlyphHoldTicks + kGlyphFadeTicks;
 
 inline constexpr std::uint32_t kMaxGlyphs = 48;
@@ -26,21 +28,21 @@ inline bool glyphDead(std::uint32_t age) { return age >= kGlyphLifeTicks; }
 
 struct Glyph {
     float x = 0.0f, y = 0.0f, z = 0.0f;
-    float distanceSq = 0.0f;   // distance from the pulse origin and the ranking key
+    float distanceSq = 0.0f;
     std::uint32_t age = 0;
-    std::uint16_t name = 0;    // index into glyphs::kNames
-    std::uint16_t flags = 0;   
-    std::uint8_t cls = 0;      
-    std::uint8_t icon = 0;     
+    std::uint16_t name = 0;
+    std::uint16_t flags = 0;
+    std::uint8_t cls = 0;
+    std::uint8_t icon = 0;
 };
 
 inline float selectionKeyOf(float distanceSq) { return distanceSq; }
 
 inline bool withinCone(float dx, float dz, float headingX, float headingZ, float cosHalfAngle) {
     const float lengthSq = dx * dx + dz * dz;
-    if (!(lengthSq > 0.0001f)) return true;  
+    if (!(lengthSq > 0.0001f)) return true;
     const float projection = dx * headingX + dz * headingZ;
-    if (projection <= 0.0f) return false;    // behind the player
+    if (projection <= 0.0f) return false;
     return projection * projection >= cosHalfAngle * cosHalfAngle * lengthSq;
 }
 
@@ -50,12 +52,12 @@ struct Tint {
     float r, g, b;
 };
 
-inline constexpr Tint kTintGrowing{0.62f, 0.93f, 0.55f};   
-inline constexpr Tint kTintCreature{0.98f, 0.84f, 0.58f};  
-inline constexpr Tint kTintHostile{1.00f, 0.45f, 0.40f};   
-inline constexpr Tint kTintMineral{0.72f, 0.78f, 1.00f};   
-inline constexpr Tint kTintTreasure{1.00f, 0.86f, 0.35f};  
-inline constexpr Tint kTintGear{0.85f, 0.90f, 0.97f};      
+inline constexpr Tint kTintGrowing{0.62f, 0.93f, 0.55f};
+inline constexpr Tint kTintCreature{0.98f, 0.84f, 0.58f};
+inline constexpr Tint kTintHostile{1.00f, 0.45f, 0.40f};
+inline constexpr Tint kTintMineral{0.72f, 0.78f, 1.00f};
+inline constexpr Tint kTintTreasure{1.00f, 0.86f, 0.35f};
+inline constexpr Tint kTintGear{0.85f, 0.90f, 0.97f};
 inline constexpr Tint kTintFire{1.00f, 0.62f, 0.28f};
 inline constexpr Tint kTintShock{1.00f, 0.94f, 0.45f};
 inline constexpr Tint kTintIce{0.62f, 0.92f, 1.00f};
@@ -106,7 +108,6 @@ inline Tint glyphTint(std::uint8_t icon) {
     return kTintGrowing;
 }
 
-
 class GlyphPicker {
   public:
     void reset() {
@@ -147,4 +148,4 @@ class GlyphPicker {
     std::uint32_t worst_ = 0;
 };
 
-}  
+}

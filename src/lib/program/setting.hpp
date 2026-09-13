@@ -1,6 +1,10 @@
 #pragma once
 #include <common.hpp>
+#if SURVEY_FIDELITY_PLAYGROUND
+#define EXL_MODULE_NAME "zonai-survey-fidelity-playground"
+#else
 #define EXL_MODULE_NAME "zonai-survey"
+#endif
 #define EXL_USE_FAKEHEAP
 namespace exl::setting {
 constexpr size_t HeapSize = 0x10000;

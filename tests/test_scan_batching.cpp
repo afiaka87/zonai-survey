@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis
+
 #include <doctest.h>
 
 #include <algorithm>
@@ -29,7 +29,7 @@ std::vector<ScanSegment> composed(bool coherent) {
         const float radius = ringRadius(ring);
         for (int pass = 0; pass < 2; ++pass) {
             const bool arcs = pass == 1;
-            if (!arcs && ring == 0) continue;  
+            if (!arcs && ring == 0) continue;
             const std::uint32_t spokes = arcs ? kSpokes - 1 : kSpokes;
             for (std::uint32_t spoke = 0; spoke < spokes; ++spoke) {
                 ScanSegment segment{};
@@ -40,6 +40,7 @@ std::vector<ScanSegment> composed(bool coherent) {
                 segment.slopeBand = static_cast<SlopeBand>(
                     coherent ? (ring / 4u) % kSlopeBandCount
                              : (spoke + ring) % kSlopeBandCount);
+
                 segment.lane = surveyLaneFor(segment);
                 segment.ax = radius + static_cast<float>(spoke);
                 segment.ay = 0.0f;
@@ -51,6 +52,7 @@ std::vector<ScanSegment> composed(bool coherent) {
             }
         }
     }
+
     std::vector<ScanSegment> packed{};
     packed.reserve(segments.size());
     for (std::uint32_t bucket = 0; bucket < kBatchBucketCount; ++bucket)
@@ -66,6 +68,7 @@ std::vector<EmittedGroup> collect(const std::vector<ScanSegment>& segments,
                [&](const SegmentGroup& group) {
                    EmittedGroup copy{};
                    copy.key = group.key;
+
                    for (std::uint32_t i = group.first;
                         i < group.first + group.count; ++i) {
                        if (segmentPasses(segments[i], tick))
@@ -108,9 +111,9 @@ std::uint32_t busiestTick(const std::vector<ScanSegment>& segments,
     return best;
 }
 
-}  
+}
 TEST_CASE("every group carries exactly one appearance") {
-    const auto segments = composed(false);  
+    const auto segments = composed(false);
     const auto groups = collect(segments, kSettledTick);
     REQUIRE(!groups.empty());
     for (const auto& group : groups) {
@@ -118,10 +121,12 @@ TEST_CASE("every group carries exactly one appearance") {
         CHECK(group.indices.size() <= kSpokes);
         for (const std::uint32_t index : group.indices) {
             const ScanSegment& segment = segments[index];
+
             CHECK(segment.revealWave == group.key.revealWave);
             CHECK(slopeLane(segment.slopeBand) == group.key.lane);
             CHECK(segment.isArc == group.key.isArc);
             CHECK(segment.crestline == group.key.crestline);
+
             CHECK(surveyPassAlpha(segment.crestline, segment.revealWave,
                                   kSettledTick) ==
                   surveyPassAlpha(group.key.crestline, group.key.revealWave,
@@ -178,7 +183,7 @@ TEST_CASE("the vertex path collapses the dense lattice by more than an order of 
     const auto segments = composed(true);
     std::uint32_t busiestLines = 0;
     const std::uint32_t tick = busiestTick(segments, busiestLines);
-    REQUIRE(busiestLines > 500);  
+    REQUIRE(busiestLines > 500);
     const auto perLine = perLineOrder(segments, tick);
     const auto groups = collect(segments, tick);
 
@@ -191,6 +196,7 @@ TEST_CASE("the vertex path collapses the dense lattice by more than an order of 
 }
 
 TEST_CASE("one key is one draw, however many lines it holds") {
+
     for (const bool coherent : {true, false}) {
         const auto segments = composed(coherent);
         for (const std::uint32_t tick : {kSweepingTick, kSettledTick}) {
@@ -206,6 +212,7 @@ TEST_CASE("one key is one draw, however many lines it holds") {
 }
 
 TEST_CASE("the six slope bands cost two draws, not six") {
+
     const auto segments = composed(false);
     const auto groups = collect(segments, kSettledTick);
     REQUIRE(!groups.empty());
@@ -237,6 +244,7 @@ TEST_CASE("the published frame is ordered the way the planner needs it") {
         const auto segments = composed(coherent);
         CHECK(framePackedForBatching(segments.data(),
                                      static_cast<std::uint32_t>(segments.size())));
+
         for (std::uint32_t i = 1; i < segments.size(); ++i) {
             CHECK(batchBucket(segments[i]) >= batchBucket(segments[i - 1u]));
             const bool sameBucket =
@@ -255,6 +263,7 @@ TEST_CASE("the published frame is ordered the way the planner needs it") {
 
 TEST_CASE("segments the picture rejects never reach a group") {
     auto segments = composed(true);
+
     segments[10].bx = segments[10].ax;
     segments[10].by = segments[10].ay;
     segments[10].bz = segments[10].az;
@@ -280,6 +289,7 @@ TEST_CASE("an empty or absent frame plans nothing") {
 }
 
 TEST_CASE("the ring we ask for covers the worst frame this lattice can produce") {
+
     std::uint32_t worstBytes = 0;
     for (const bool coherent : {true, false}) {
         const auto segments = composed(coherent);
@@ -311,6 +321,7 @@ TEST_CASE("the ring we ask for covers the worst frame this lattice can produce")
 }
 
 TEST_CASE("a lane's three bands ride one draw at their own exact colours") {
+
     const float waves[] = {1.0f, 4.0f, 12.0f, 24.0f,
                            static_cast<float>(kRings)};
     for (const float wave : waves) {
@@ -377,12 +388,14 @@ TEST_CASE("Survey palette keeps six distinguishable bands, cool to warm") {
 }
 
 TEST_CASE("vertical terrain is quieted rather than shouted") {
+
     const SurveyRgba vertical = surveyBandColor(SlopeBand::Vertical, 8.0f);
     const SurveyRgba steep = surveyBandColor(SlopeBand::Steep, 8.0f);
 
     CHECK(vertical.g > 0.15f);
     CHECK(vertical.b > 0.15f);
     CHECK(vertical.g == doctest::Approx(vertical.b).epsilon(0.05));
+
     CHECK(vertical.a < 0.75f);
     CHECK(vertical.a == doctest::Approx(steep.a));
 
@@ -391,6 +404,7 @@ TEST_CASE("vertical terrain is quieted rather than shouted") {
 }
 
 TEST_CASE("distance does not fade the Survey") {
+
     for (std::uint32_t band = 0; band < kSlopeBandCount; ++band) {
         const auto slope = static_cast<SlopeBand>(band);
         const SurveyRgba near = surveyBandColor(slope, 4.0f);
@@ -413,6 +427,7 @@ TEST_CASE("distance does not fade the Survey") {
 }
 
 TEST_CASE("a pass packs into one allocation with no rounding waste") {
+
     CHECK(surveyRingBytesPerPass(1, 1) == 256u + 256u);
     CHECK(surveyRingBytesPerPass(64, 1) == roundToRingBlock(64u * 2u * 36u) + 256u);
 
@@ -424,10 +439,12 @@ TEST_CASE("a pass packs into one allocation with no rounding waste") {
         CHECK(surveyRingBytesPerPass(groups * linesEach, groups) <=
               perGroupTotal(groups, linesEach));
     }
+
     CHECK(surveyRingBytesPerPass(100u * 31u, 100u) < perGroupTotal(100u, 31u));
 }
 
 TEST_CASE("the split predicate equals the original, everywhere") {
+
     ScanSegment segment{};
     segment.ax = 0.0f; segment.ay = 5.0f; segment.az = 0.0f;
     segment.bx = 2.0f; segment.by = 5.0f; segment.bz = 1.0f;
@@ -455,6 +472,7 @@ TEST_CASE("the split predicate equals the original, everywhere") {
 }
 
 TEST_CASE("published group spans reproduce planGroups' grouping") {
+
     ScanSegment frame[64]{};
     std::uint32_t count = 0;
     for (std::uint32_t ring = 1; ring <= 4; ++ring) {
@@ -498,13 +516,13 @@ TEST_CASE("published group spans reproduce planGroups' grouping") {
     CHECK(cursor == count);
 }
 
-
 TEST_CASE("feet arcs, base arcs and crest overlays never share a bucket") {
+
     ScanSegment feet{};
     feet.isArc = true;
     feet.lane = SlopeLane::Cool;
     ScanSegment ringZero = feet;
-    ringZero.revealWave = 1.0f;  
+    ringZero.revealWave = 1.0f;
     std::uint32_t previous = 0;
     for (const float fraction : {0.25f, 0.5f, 0.75f}) {
         feet.revealWave = fraction;
@@ -516,16 +534,20 @@ TEST_CASE("feet arcs, base arcs and crest overlays never share a bucket") {
     ScanSegment crest = ringZero;
     crest.crestline = true;
     CHECK(batchBucket(crest) != batchBucket(ringZero));
+
     CHECK(batchKindOf(true, true, false) == 2u);
     CHECK(batchKindOf(true, false, false) == 1u);
     CHECK(batchKindOf(false, false, false) == 0u);
     CHECK(batchKindOf(false, false, true) == 3u);
+
     CHECK(kBatchBucketCount == kBatchWaveSteps * kBatchKindCount * kSlopeLaneCount);
     CHECK(kMaxSurveyGroups >= kBatchBucketCount);
 }
 
 TEST_CASE("width depends on the line's kind and nothing else") {
+
     CHECK(segmentWidth(true) > segmentWidth(false));
+
     CHECK(segmentWidth(true) == doctest::Approx(kArcWidth * kSurveyWidthGain));
     CHECK(segmentWidth(false) == doctest::Approx(kRibWidth * kSurveyWidthGain));
 }
@@ -537,6 +559,7 @@ TEST_CASE("every Survey line follows the travelling envelope") {
     for (std::uint32_t tick = 0; tick <= kSweepLifetimeTicks; ++tick) {
         const float body = sweepAlpha(wave, tick);
         const float crest = sweepCrestlineAlpha(wave, tick);
+
         CHECK(surveyPassAlpha(false, wave, tick) == doctest::Approx(body));
         CHECK(surveyPassAlpha(true, wave, tick) == doctest::Approx(crest));
         CHECK(groupTickPasses(wave, tick, false) == (body > kAlphaCutoff));

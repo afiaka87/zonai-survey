@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis
 #include <lib.hpp>
 
 #include "WaterSurfaceProbe.hpp"
@@ -17,7 +16,7 @@ constexpr std::ptrdiff_t kGetWaterDepth = 0x00CE8C94;
     return value == value && value > -10000.0f && value < 10000.0f;
 }
 
-}  
+}
 
 void WaterSurfaceProbe::begin(std::uintptr_t mainBase) {
     mainBase_ = mainBase;
@@ -70,4 +69,4 @@ WaterSurfaceSample WaterSurfaceProbe::sample(float x, float z) {
     return sample;
 }
 
-}  
+}

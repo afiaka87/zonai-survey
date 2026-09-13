@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #include <lib.hpp>
 
 #include <cmath>
@@ -21,15 +23,17 @@ float readFloat(const unsigned char* base, std::ptrdiff_t offset) {
     return value;
 }
 
-}  
+}
 
 void TerrainProber::arm(float linkX, float linkY, float linkZ, float headingX, float headingZ,
                         std::uint32_t sceneGeneration) {
     headingX_ = headingX;
     headingZ_ = headingZ;
+
     armed_.store(false, std::memory_order_release);
     authorised_.store(0, std::memory_order_release);
     completed_.store(0, std::memory_order_release);
+
     recovered_.store(0, std::memory_order_relaxed);
     rangeClipped_.store(0, std::memory_order_relaxed);
     raycasts_.store(0, std::memory_order_relaxed);
@@ -40,6 +44,7 @@ void TerrainProber::arm(float linkX, float linkY, float linkZ, float headingX, f
     originZ_ = linkZ;
     scene_ = sceneGeneration;
     for (std::uint32_t i = 0; i < pure::kProbeCount; ++i) samples_[i] = pure::TerrainSample{};
+
     for (std::uint32_t spoke = 0; spoke < pure::kSpokes; ++spoke) carryY_[spoke] = linkY;
 
     armed_.store(true, std::memory_order_release);
@@ -79,6 +84,7 @@ std::uint32_t TerrainProber::service(RaycastFn original, const void* liveQueryOb
 
 bool TerrainProber::castSegment(RaycastFn original, float fromX, float fromY, float fromZ,
                                 float toX, float toY, float toZ, pure::TerrainSample& out) {
+
     const float from[3] = {fromX, fromY, fromZ};
     const float to[3] = {toX, toY, toZ};
 
@@ -108,6 +114,7 @@ bool TerrainProber::castSegment(RaycastFn original, float fromX, float fromY, fl
 
 pure::TerrainSample TerrainProber::castNode(RaycastFn original, std::uint32_t index) {
     const std::uint32_t spoke = pure::probeSpoke(index);
+
     if (!pure::sampleWithinRange(pure::probeRing(index), spoke)) {
         rangeClipped_.fetch_add(1, std::memory_order_relaxed);
         return pure::TerrainSample{};
@@ -119,10 +126,12 @@ pure::TerrainSample TerrainProber::castNode(RaycastFn original, std::uint32_t in
     pure::FanRay used = ray;
     if (!castSegment(original, ray.fromX, ray.fromY, ray.fromZ, ray.toX, ray.toY, ray.toZ,
                      node)) {
+
         const pure::FanRay wide = pure::recoveryRayFor(
             index, originX_, originZ_, carryY_[spoke], headingX_, headingZ_);
         if (!castSegment(original, wide.fromX, wide.fromY, wide.fromZ, wide.toX, wide.toY,
                          wide.toZ, node)) {
+
             return pure::TerrainSample{};
         }
         used = wide;
@@ -139,4 +148,4 @@ pure::TerrainSample TerrainProber::castNode(RaycastFn original, std::uint32_t in
     return node;
 }
 
-}  
+}

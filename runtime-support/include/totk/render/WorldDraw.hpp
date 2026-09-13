@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <cstdint>
@@ -59,7 +61,7 @@ struct VertexBlock {
     PrimitiveVertex* cpu = nullptr;
     std::uint32_t offset = 0;
     std::uint32_t bytes = 0;
-    std::uint32_t capacity = 0;  
+    std::uint32_t capacity = 0;
     std::uint32_t written = 0;
     bool valid = false;
 };
@@ -82,6 +84,7 @@ struct WorldFrame {
     sead::Projection* projection = nullptr;
     sead::PrimitiveDrawer* drawer = nullptr;
     EyePoint eye{};
+
     const VertexDrawPath* vertexPath = nullptr;
 };
 
@@ -99,19 +102,18 @@ inline constexpr int kMaxWorldDrawers = 4;
 bool configure(std::uintptr_t mainBase);
 [[nodiscard]] bool configured();
 
-// Registration runs on the game thread and draw callbacks run on the render thread.
 bool registerDrawer(const char* name, WantsDrawFn wants, DrawFn draw,
                     bool needsVertexPath = false);
 
 struct SeamStats {
-    std::uint32_t gameplayFrames = 0;  
-    std::uint32_t openedPasses = 0;    
-    std::uint32_t idleFrames = 0;      
-    std::uint32_t refusedPasses = 0;   
-    std::uint64_t gfxTicks = 0;        
+    std::uint32_t gameplayFrames = 0;
+    std::uint32_t openedPasses = 0;
+    std::uint32_t idleFrames = 0;
+    std::uint32_t refusedPasses = 0;
+    std::uint64_t gfxTicks = 0;
     std::uint32_t gfxCalls = 0;
 };
 [[nodiscard]] SeamStats stats();
 void resetStats();
 
-}  
+}

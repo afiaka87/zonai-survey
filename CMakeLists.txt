@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.25)
 project(zonai_survey CXX C ASM)
+option(SURVEY_DEPTH_SCAN "Use depth-based surface rendering" ON)
+option(SURVEY_FIDELITY_PLAYGROUND "Enable diagnostic controls and shaders" OFF)
+option(SURVEY_COMPACT_MAP "Losslessly pack collectible placements" ON)
 
 set(EXLAUNCH_ROOT "" CACHE PATH "Path to the pinned exlaunch checkout")
 set(TOTK_SDK_ROOT "" CACHE PATH "Path to compatible TotK headers and 1.2.1 symbols")
@@ -95,6 +98,23 @@ add_executable(subsdk9
   ${SOURCES_CXX}
   ${SUPPORT_SOURCES}
 )
+target_compile_definitions(subsdk9 PRIVATE
+  SURVEY_DEPTH_SCAN=$<BOOL:${SURVEY_DEPTH_SCAN}>
+  SURVEY_FIDELITY_PLAYGROUND=$<BOOL:${SURVEY_FIDELITY_PLAYGROUND}>)
+get_target_property(SURVEY_SOURCES subsdk9 SOURCES)
+if(SURVEY_DEPTH_SCAN)
+  list(FILTER SURVEY_SOURCES EXCLUDE REGEX "/(ScanController|ScanRenderer|TerrainProber|VerticalSurfaceProber|WaterSurfaceProbe)\\.cpp$")
+  include(cmake/SurfaceScan.cmake)
+else()
+  list(FILTER SURVEY_SOURCES EXCLUDE REGEX "/surface/")
+endif()
+set_property(TARGET subsdk9 PROPERTY SOURCES "${SURVEY_SOURCES}")
+if(SURVEY_COMPACT_MAP)
+  include(cmake/PackedGlyphs.cmake)
+  survey_add_packed_glyphs(subsdk9)
+  target_compile_definitions(subsdk9 PRIVATE SURVEY_COMPACT_MAP=1)
+endif()
+
 set_target_properties(subsdk9 PROPERTIES SUFFIX ".elf" C_STANDARD 23 CXX_STANDARD 26)
 target_compile_options(subsdk9 PRIVATE -Werror=switch)
 add_custom_command(TARGET subsdk9 POST_BUILD
@@ -110,3 +130,19 @@ set_target_properties(subsdk9 PROPERTIES
   LINK_FLAGS "-specs ${CMAKE_BINARY_DIR}/subsdk9.specs -g ${ARCH} -nostartfiles"
 )
 add_custom_target(subsdk9_meta DEPENDS create_npdm subsdk9_nso)
+
+if(SURVEY_DEPTH_SCAN)
+  set(surface_budget_args)
+  if(SURVEY_COMPACT_MAP)
+    list(APPEND surface_budget_args --compact)
+  endif()
+  if(NOT SURVEY_FIDELITY_PLAYGROUND)
+    list(APPEND surface_budget_args --production)
+  endif()
+  add_custom_target(surface_memory_check
+    COMMAND uv run --no-project python "${CMAKE_CURRENT_SOURCE_DIR}/tools/check_surface_budget.py"
+      --nso "${CMAKE_CURRENT_BINARY_DIR}/subsdk9" --elf "$<TARGET_FILE:subsdk9>"
+      --nm "${CMAKE_NM}" ${surface_budget_args}
+    DEPENDS subsdk9_nso VERBATIM)
+  add_dependencies(subsdk9_meta surface_memory_check)
+endif()

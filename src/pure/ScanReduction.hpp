@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <cmath>
@@ -10,17 +12,19 @@
 
 namespace zonai_survey::pure {
 
-
 struct TerrainSample {
     bool hit = false;
     float x = 0.0f;
     float y = 0.0f;
     float z = 0.0f;
-    float normalY = 1.0f;   // 1.0 = flat ground, 0.0 = vertical wall
-    float distance = 0.0f;  
+    float normalY = 1.0f;
+    float distance = 0.0f;
+
     float normalX = 0.0f;
     float normalZ = 0.0f;
+
     bool buried = false;
+
     float viewCosine = 1.0f;
 };
 
@@ -40,7 +44,7 @@ inline float rayViewCosine(float normalX, float normalY, float normalZ,
 }
 
 inline constexpr float kMaxLinkRise = 8.0f;
-inline constexpr float kMaxLinkSlope = 1.0f;  // 45 degrees
+inline constexpr float kMaxLinkSlope = 1.0f;
 
 inline float linkRiseAllowance(const TerrainSample& a, const TerrainSample& b) {
     const float dx = b.x - a.x;
@@ -56,11 +60,10 @@ inline bool linkable(const TerrainSample& a, const TerrainSample& b) {
     return (gap < 0.0f ? -gap : gap) <= linkRiseAllowance(a, b);
 }
 
-
 enum class SegmentClass : uint8_t {
-    Ground,  
-    Steep,   
-    Cliff,   
+    Ground,
+    Steep,
+    Cliff,
 };
 
 enum class SlopeBand : uint8_t {
@@ -78,8 +81,8 @@ static_assert(static_cast<std::uint32_t>(SlopeBand::Vertical) + 1u ==
               "a new Survey slope band needs a palette and batch slot");
 
 enum class SlopeLane : std::uint8_t {
-    Cool,  
-    Warm,  
+    Cool,
+    Warm,
 };
 
 inline constexpr std::uint32_t kSlopeLaneCount = 2;
@@ -91,10 +94,11 @@ constexpr std::uint32_t laneIndex(SlopeLane lane) {
 }
 
 enum class SegmentOrigin : std::uint8_t {
-    Ground = 0,    
-    WallNear = 1,  
-    WallMid = 2,   
-    WallFar = 3,   
+    Ground = 0,
+    WallNear = 1,
+    WallMid = 2,
+    WallFar = 3,
+
     ShallowGround = 4,
 };
 
@@ -114,21 +118,26 @@ constexpr bool originIsWall(SegmentOrigin origin) {
 struct ScanSegment {
     float ax = 0.0f, ay = 0.0f, az = 0.0f;
     float bx = 0.0f, by = 0.0f, bz = 0.0f;
+
     float revealWave = 0.0f;
     SegmentClass surface = SegmentClass::Ground;
     SlopeBand slopeBand = SlopeBand::Level;
+
     float steepness = -1.0f;
-    bool isArc = false;  // true = part of a ring circle, false = a radial rib
+    bool isArc = false;
+
     SegmentOrigin origin = SegmentOrigin::Ground;
     SlopeLane lane = SlopeLane::Cool;
+
     bool buried = false;
+
     bool adaptiveRepair = false;
+
     bool microStitch = false;
+
     bool crestline = false;
 };
 
-
-// Ambiguous classifications are omitted instead of treated as passable terrain.
 constexpr bool surveyShows(const ScanSegment& segment) {
     return segment.isArc || originIsWall(segment.origin);
 }
@@ -140,8 +149,8 @@ constexpr bool surveyBuriedShows(const ScanSegment& segment) {
 inline constexpr float kWalkableSlope = 0.45f;
 inline constexpr float kCliffSlope = 1.20f;
 
-inline constexpr float kWalkableNormalY = 0.913f;  
-inline constexpr float kSteepNormalY = 0.643f;     
+inline constexpr float kWalkableNormalY = 0.913f;
+inline constexpr float kSteepNormalY = 0.643f;
 
 inline float normalSteepness(float normalY) {
     float n = normalY < 0.0f ? -normalY : normalY;
@@ -169,11 +178,11 @@ inline float segmentSteepness(const TerrainSample& a,
 
 inline SlopeBand slopeBandFor(float steepness) {
     if (!std::isfinite(steepness)) return SlopeBand::Vertical;
-    if (steepness <= 0.208f) return SlopeBand::Level;     // about 12 degrees
-    if (steepness <= 0.407f) return SlopeBand::Rolling;   // about 24 degrees
-    if (steepness <= 0.588f) return SlopeBand::Inclined;  // about 36 degrees
-    if (steepness <= 0.766f) return SlopeBand::Steep;     // about 50 degrees
-    if (steepness <= 0.940f) return SlopeBand::Severe;    // about 70 degrees
+    if (steepness <= 0.208f) return SlopeBand::Level;
+    if (steepness <= 0.407f) return SlopeBand::Rolling;
+    if (steepness <= 0.588f) return SlopeBand::Inclined;
+    if (steepness <= 0.766f) return SlopeBand::Steep;
+    if (steepness <= 0.940f) return SlopeBand::Severe;
     return SlopeBand::Vertical;
 }
 
@@ -213,7 +222,6 @@ inline bool surfaceContinuous(const TerrainSample& a, const TerrainSample& b) {
     return observedSlope <= allowedSlope;
 }
 
-
 inline SegmentClass classifyBySlope(float slope) {
     if (slope <= kWalkableSlope) return SegmentClass::Ground;
     if (slope <= kCliffSlope) return SegmentClass::Steep;
@@ -230,7 +238,6 @@ inline SegmentClass classifyByNormal(float normalY) {
 inline SegmentClass worseOf(SegmentClass a, SegmentClass b) {
     return static_cast<uint8_t>(a) >= static_cast<uint8_t>(b) ? a : b;
 }
-
 
 inline constexpr float kSpikeRise = 1.8f;
 
@@ -275,12 +282,13 @@ inline uint32_t despikeRing(TerrainSample* ring, uint32_t count, uint32_t ringIn
         float window[5];
         uint32_t gathered = 0;
         for (int32_t offset = -2; offset <= 2; ++offset) {
+
             const int32_t probe = static_cast<int32_t>(i) + offset;
             if (probe < 0 || probe >= static_cast<int32_t>(count)) continue;
             const uint32_t index = static_cast<uint32_t>(probe);
             if (ring[index].hit) window[gathered++] = ring[index].y;
         }
-        if (gathered < 3) continue;  
+        if (gathered < 3) continue;
 
         const float median = medianOfFive(window, gathered);
         const float delta = ring[i].y - median;
@@ -305,6 +313,7 @@ inline void smoothRing(TerrainSample* ring, uint32_t count, uint32_t ringIndex =
 
     for (uint32_t i = 0; i < count; ++i) {
         if (!ring[i].hit) continue;
+
         if (i == 0 || i + 1 >= count) continue;
         const uint32_t prev = i - 1;
         const uint32_t next = i + 1;
@@ -338,9 +347,10 @@ inline SegmentClass classifyContinuousStep(const TerrainSample& a,
                            classifyByNormal(b.normalY)));
 }
 
-
 enum class GroundJoinRule : std::uint8_t {
+
     Continuous,
+
     Recovered,
 };
 
@@ -377,12 +387,11 @@ inline SegmentClass classifyGroundStep(const TerrainSample& a,
                                               : classifyRecoveredStep(a, b);
 }
 
-
 inline uint32_t reduceRadialStep(const TerrainSample& near, const TerrainSample& far,
                                  uint32_t outerRing, ScanSegment* out,
                                  GroundJoinRule rule) {
     if (out == nullptr) return 0;
-    if (!groundJoinAdmits(near, far, rule)) return 0;  
+    if (!groundJoinAdmits(near, far, rule)) return 0;
 
     ScanSegment& segment = *out;
     segment = ScanSegment{};
@@ -391,6 +400,7 @@ inline uint32_t reduceRadialStep(const TerrainSample& near, const TerrainSample&
     segment.slopeBand = slopeBandFor(steepness);
     segment.steepness = steepness;
     segment.isArc = false;
+
     segment.revealWave = waveArrivalOf(outerRing);
     segment.ax = near.x;
     segment.ay = near.y;
@@ -400,7 +410,6 @@ inline uint32_t reduceRadialStep(const TerrainSample& near, const TerrainSample&
     segment.bz = far.z;
     return 1;
 }
-
 
 inline uint32_t reduceArcStep(const TerrainSample& a, const TerrainSample& b, uint32_t ring,
                               ScanSegment* out, GroundJoinRule rule) {
@@ -427,6 +436,7 @@ inline uint32_t reduceArcStep(const TerrainSample& a, const TerrainSample& b, ui
 }
 
 inline constexpr float kGroundBendFloorMeters = 0.75f;
+
 inline constexpr float kGroundBendSlopeChange = 0.50f;
 
 struct GroundTrack {
@@ -607,10 +617,8 @@ inline std::uint32_t trackedRadialStep(GroundTrack& track,
     return written;
 }
 
-
 inline constexpr float kCrestWidthRings = 2.2f;
 inline constexpr float kCrestLiftMeters = 0.45f;
-
 
 inline constexpr float kCrestProminenceMeters = 1.5f;
 inline constexpr float kCrestProminenceSpacingScale = 0.10f;
@@ -634,7 +642,6 @@ inline constexpr float kGroundClearanceMeters = 0.25f;
 inline constexpr uint32_t kScanLifetimeTicks = 331;
 
 inline bool scanExpired(uint32_t tick) { return tick >= kScanLifetimeTicks; }
-
 
 inline constexpr uint32_t kRadialSpokeStride = 1;
 
@@ -662,6 +669,4 @@ inline DrawSelection selectForDraw(uint32_t candidateCount, uint32_t cap = kMaxD
     return selection;
 }
 
-
-
-}  
+}

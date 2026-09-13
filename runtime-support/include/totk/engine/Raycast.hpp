@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 
 #pragma once
@@ -116,6 +117,7 @@ public:
         }
 
         std::memcpy(queryObject_, liveObject, sizeof(queryObject_));
+
         queryObject_[layout::kRaycastHit] = 0;
         engineResult_ =
             original(&request_.from, &request_.to, queryObject_, nullptr,
@@ -209,4 +211,4 @@ private:
     std::uint64_t engineResult_ = 0;
 };
 
-} 
+}

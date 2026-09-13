@@ -1,10 +1,16 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <cstdint>
 
 #include "GlyphTables.hpp"
+#include "PackedGlyphs.hpp"
+#ifndef SURVEY_COMPACT_MAP
+#define SURVEY_COMPACT_MAP 0
+#endif
 
 namespace zonai_survey::pure {
 
@@ -55,7 +61,6 @@ inline std::uint8_t glyphIconOf(std::uint32_t nameIndex) {
     return glyphs::kNames[nameIndex].icon;
 }
 
-
 inline int floorDiv(float coord) {
     const float scaled = coord / glyphs::kCellSize;
     const int truncated = static_cast<int>(scaled);
@@ -72,7 +77,7 @@ inline float placementWorldZ(const glyphs::Placement& p) {
     return static_cast<float>(p.z) * glyphs::kPosScale;
 }
 
-template <class Visit>
+template <bool Packed = (SURVEY_COMPACT_MAP != 0), class Visit>
 inline void forEachPlacementNear(float centreX, float centreZ, float radius, Visit&& visit) {
     if (!(radius > 0.0f)) return;
 
@@ -94,7 +99,10 @@ inline void forEachPlacementNear(float centreX, float centreZ, float radius, Vis
             const std::uint32_t begin = glyphs::kCellStart[cell];
             const std::uint32_t end = glyphs::kCellStart[cell + 1];
             for (std::uint32_t i = begin; i < end; ++i) {
-                const glyphs::Placement& p = glyphs::kPlacements[i];
+                const auto& p = [&]() -> decltype(auto) {
+                    if constexpr (Packed) return glyphs::unpackPlacement(i,cell);
+                    else return (glyphs::kPlacements[i]);
+                }();
                 const float dx = placementWorldX(p) - centreX;
                 const float dz = placementWorldZ(p) - centreZ;
                 const float d2 = dx * dx + dz * dz;
@@ -105,4 +113,4 @@ inline void forEachPlacementNear(float centreX, float centreZ, float radius, Vis
     }
 }
 
-}  
+}

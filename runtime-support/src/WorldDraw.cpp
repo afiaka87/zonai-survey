@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #include <lib.hpp>
 
 #include <cstdint>
 #include <cstring>
 
-#include <nn/util.h>  
+#include <nn/util.h>
 
 #include <common/aglDrawContext.h>
 #include <gfx/seadCamera.h>
@@ -26,14 +28,12 @@
 namespace totk::render {
 namespace {
 
-
 template <typename... Args>
 void note(const char* format, Args... args) {
     char line[224];
     nn::util::SNPrintf(line, sizeof(line), format, args...);
     totk::ui::emitDiagnostic(line);
 }
-
 
 using VoidOnDrawer = void (*)(sead::PrimitiveDrawer*);
 using SetDrawCtxFn = void (*)(sead::PrimitiveDrawer*, sead::DrawContext*);
@@ -53,6 +53,7 @@ using BindVertexBufferFn = void (*)(void* commandBuffer, int index, std::uint64_
                                     std::uint64_t size);
 using BindUniformBufferFn = void (*)(void* commandBuffer, int stage, int index,
                                      std::uint64_t address, std::uint64_t size);
+
 using RingAllocFn = std::uint32_t (*)(std::uintptr_t ringHeader, int byteCount);
 
 sead::PrimitiveRenderer** g_rendererSlot = nullptr;
@@ -207,7 +208,6 @@ PrimitiveBar makeBar(const Vec3& from, const Vec3& to, float pixelWidth,
     return buildPrimitiveBar(from, to, radius);
 }
 
-
 bool plausiblePointer(std::uintptr_t pointer) {
     return pointer > 0x1000 && (pointer & 0x7) == 0;
 }
@@ -216,6 +216,7 @@ void* resolveDriverFn(std::uintptr_t slot) {
     if (!g_mainBase) return nullptr;
     const auto entry = *reinterpret_cast<std::uintptr_t*>(g_mainBase + slot);
     if (!plausiblePointer(entry)) return nullptr;
+
     const auto fn = *reinterpret_cast<std::uintptr_t*>(entry);
     if (!plausiblePointer(fn)) return nullptr;
     return reinterpret_cast<void*>(fn);
@@ -278,7 +279,6 @@ void noteRingShort() {
          "were not submitted. Raise the configured ring size.");
 }
 
-
 struct Registration {
     const char* name = nullptr;
     WantsDrawFn wants = nullptr;
@@ -311,7 +311,6 @@ class GfxTimer {
     std::uint64_t start_ = 0;
 #endif
 };
-
 
 void dispatch(agl::DrawContext* drawCtx, sead::Camera* camera,
               sead::Projection* projection) {
@@ -359,6 +358,7 @@ void dispatch(agl::DrawContext* drawCtx, sead::Camera* camera,
 
     for (int i = 0; i < g_drawerCount; ++i) {
         if (!wants[i] || g_drawers[i].draw == nullptr) continue;
+
         frame.vertexPath = g_drawers[i].needsVertexPath && path.valid ? &path : nullptr;
         g_drawers[i].draw(frame);
     }
@@ -371,7 +371,6 @@ void dispatch(agl::DrawContext* drawCtx, sead::Camera* camera,
     restoreSceneState(drawCtx);
     ++g_stats.openedPasses;
 }
-
 
 struct LayerView {
     sead::Camera* camera = nullptr;
@@ -462,8 +461,7 @@ HOOK_DEFINE_TRAMPOLINE(OpaquePassEndHook) {
     }
 };
 
-}  
-
+}
 
 float distanceTo(const EyePoint& eye, const Vec3& point) {
     if (!eye.valid) return 0.0f;
@@ -480,6 +478,7 @@ bool finite3(float x, float y, float z) {
 sead::Color4f lineTint(const sead::Color4f& base, float alpha) {
     if (alpha < 0.0f) alpha = 0.0f;
     if (alpha > 1.0f) alpha = 1.0f;
+
     return sead::Color4f{base.r, base.g, base.b, base.a * __builtin_sqrtf(alpha)};
 }
 
@@ -563,6 +562,7 @@ bool submitRange(const VertexDrawPath& path, agl::DrawContext* drawContext,
     reinterpret_cast<BindUniformBufferFn>(path.bindUniformBuffer)(
         path.commandBuffer, kPrimitiveVertexStage, kPrimitiveModelUniformIndex,
         path.ringGpu + uniformOffset, kPrimitiveDrawUniformBytes);
+
     if (primitive == kPrimitiveLines && width != lastWidth) {
         reinterpret_cast<SetLineWidthFn>(path.setLineWidth)(path.widthContext, drawContext,
                                                             width);
@@ -653,4 +653,4 @@ SeamStats stats() { return g_stats; }
 
 void resetStats() { g_stats = SeamStats{}; }
 
-}  
+}

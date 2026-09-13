@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 #include <lib.hpp>
 
@@ -12,6 +13,10 @@
 #include "totk/engine/Totk121Offsets.hpp"
 #include "totk/harness/SoloHarness.hpp"
 #include "totk/ui/Overlay.hpp"
+#if SURVEY_DEPTH_SCAN
+#include "FidelityPlayground.hpp"
+#include "FidelityPolicy.hpp"
+#endif
 
 namespace {
 using totk::engine::Totk121Offsets;
@@ -37,11 +42,16 @@ HOOK_DEFINE_TRAMPOLINE(RayCastWorkerHook) {
 HOOK_DEFINE_TRAMPOLINE(NpadCalcHook) {
     static void Callback(void* device) {
         Orig(device);
-        if (lotuskit::DebugDrawHooks::graphicsReady()) solo::tick(device);
+        if (lotuskit::DebugDrawHooks::graphicsReady()) {
+#if SURVEY_FIDELITY_PLAYGROUND
+            survey_fidelity::tick(device);
+#endif
+            solo::tick(device);
+        }
     }
 };
 
-}  
+}
 
 extern "C" void exl_main(void*, void*) {
     const uintptr_t mainBase = exl::util::modules::GetTargetStart();
@@ -50,20 +60,31 @@ extern "C" void exl_main(void*, void*) {
     zonai_survey::engine::installAssetRedirect();
     lotuskit::DebugDrawHooks::setGraphicsPreflight(zonai_survey::engine::prepareSurveyAssets);
 
-    const bool ringRaised =
-        overlay::configurePrimitiveUniformBuffer(zonai_survey::pure::kSurveyRingBytes);
+#if SURVEY_DEPTH_SCAN
+    constexpr auto ringBytes = survey_fidelity::kTextOnlyRingBytes;
+#else
+    constexpr auto ringBytes = zonai_survey::pure::kSurveyRingBytes;
+#endif
+    const bool ringRaised = overlay::configurePrimitiveUniformBuffer(ringBytes);
 
     overlay::installHooks();
+#if !SURVEY_DEPTH_SCAN
     zonai_survey::render::install(mainBase);
+#endif
     lotuskit::DebugDrawHooks::setWorldDrawCallback(zonai_survey::render::drawGlyphs);
 
     solo::init(mainBase, wwpg::modules::zonaiSurvey());
+#if !SURVEY_DEPTH_SCAN
     RayCastWorkerHook::InstallAtOffset(Totk121Offsets::kRaycastWorker.value);
+#endif
     NpadCalcHook::InstallAtOffset(Totk121Offsets::kNpadCalc.value);
     audio::installHooks(mainBase);
+#if SURVEY_DEPTH_SCAN
+    survey_fidelity::install(mainBase);
+#endif
 
     Logging.Log("[zonai-survey] %s hooks installed; graphics pending DRAW_RING=%u(%d)",
-                zonai_survey::kModVersion, zonai_survey::pure::kSurveyRingBytes,
+                zonai_survey::kModVersion, ringBytes,
                 ringRaised ? 1 : 0);
 }
 

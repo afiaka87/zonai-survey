@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) aquacluck and totk-lotuskit contributors.
+
+// Copyright (C) aquacluck and the totk-lotuskit contributors
 
 #pragma once
 #include <string>
@@ -16,5 +17,5 @@ template<class T>
 inline T EXL_SYM_RESOLVE(std::string sym) {
     auto search = exl::reloc::GetLookupTable().FindByName(sym);
     if (search == nullptr) { return nullptr; }
-    return reinterpret_cast<T>(exl::util::modules::GetTargetStart() + search->m_Offset); 
+    return reinterpret_cast<T>(exl::util::modules::GetTargetStart() + search->m_Offset);
 }

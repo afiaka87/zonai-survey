@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #include <cmath>
 #include <cstring>
 
 #include "doctest.h"
 
 #include "GlyphIndex.hpp"
-#include "PulseLattice.hpp"  
+#include "PulseLattice.hpp"
 #include "GlyphLife.hpp"
 #include "GlyphTables.hpp"
 #include "IconGlyphs.hpp"
@@ -34,7 +36,7 @@ bool fontHasGlyph(std::uint32_t codePoint) {
 
 struct Decoded {
     std::uint32_t codePoint = 0;
-    int length = 0;  
+    int length = 0;
 };
 
 Decoded decodeUtf8(const char* s) {
@@ -52,7 +54,7 @@ Decoded decodeUtf8(const char* s) {
         if ((b1 & 0xC0u) != 0x80u || (b2 & 0xC0u) != 0x80u) return {};
         return {((b0 & 0x0Fu) << 12) | ((b1 & 0x3Fu) << 6) | (b2 & 0x3Fu), 3};
     }
-    return {};  
+    return {};
 }
 
 constexpr glyphs::GlyphClass kAllClasses[] = {
@@ -65,14 +67,16 @@ constexpr glyphs::GlyphClass kAllClasses[] = {
     glyphs::GlyphClass::Chest,        glyphs::GlyphClass::Enemy,
 };
 
-}  
+}
 
 TEST_CASE("every icon is a cell the shipped font can actually draw") {
+
     for (std::uint8_t i = 0; i < icons::kIconCount; ++i) {
         const char* icon = icons::kIconUtf8[i];
         REQUIRE(icon != nullptr);
 
         const Decoded decoded = decodeUtf8(icon);
+
         CHECK_MESSAGE(decoded.length > 0, "icon is not valid 1-3 byte UTF-8");
         CHECK(std::strlen(icon) == static_cast<std::size_t>(decoded.length));
         CHECK_MESSAGE(fontHasGlyph(decoded.codePoint),
@@ -106,23 +110,25 @@ TEST_CASE("every icon has a colour, and the colours are in range") {
         CHECK(tint.g <= 1.0f);
         CHECK(tint.b >= 0.0f);
         CHECK(tint.b <= 1.0f);
+
         CHECK(tint.r + tint.g + tint.b > 0.9f);
     }
 }
 
 TEST_CASE("the icons that carry the world are the ones the rules promise") {
+
     struct Expected {
         const char* actor;
         icons::Icon icon;
     };
     const Expected kCases[] = {
-        {"LightBall_Small", icons::Icon::Glow},        
-        {"FireFruit", icons::Icon::Fire},              
+        {"LightBall_Small", icons::Icon::Glow},
+        {"FireFruit", icons::Icon::Fire},
         {"IceFruit", icons::Icon::Ice},
         {"WaterFruit", icons::Icon::Splash},
         {"ElectricalFruit", icons::Icon::Shock},
-        {"Item_Mushroom_A", icons::Icon::Stamina},     
-        {"Item_Mushroom_D", icons::Icon::Mushroom},    
+        {"Item_Mushroom_A", icons::Icon::Stamina},
+        {"Item_Mushroom_D", icons::Icon::Mushroom},
         {"Item_Plant_A", icons::Icon::Plant},
         {"Item_Fruit_A", icons::Icon::Material},
         {"Animal_Fish_A", icons::Icon::Fish},
@@ -135,6 +141,7 @@ TEST_CASE("the icons that carry the world are the ones the rules promise") {
         {"Weapon_Shield_001", icons::Icon::Shield},
         {"Weapon_Bow_001", icons::Icon::Bow},
         {"FldObj_Pinecone_A_01", icons::Icon::Wood},
+
         {"Item_Enemy_130", icons::Icon::Zonai},
         {"Item_Material_04", icons::Icon::Material},
         {"Item_Meat_01", icons::Icon::Meat},
@@ -154,10 +161,11 @@ TEST_CASE("the name table is sorted, which is what makes the lookup a search") {
 }
 
 TEST_CASE("known collectibles resolve, and nonsense does not") {
+
     const char* const known[] = {
-        "Item_Fruit_A",       
-        "Item_Mushroom_D",    
-        "Animal_Fish_A",      
+        "Item_Fruit_A",
+        "Item_Mushroom_D",
+        "Animal_Fish_A",
         "Enemy_Bokoblin_Junior",
         "TBox_Field_Iron",
         "Obj_Mineral_A_01",
@@ -168,7 +176,7 @@ TEST_CASE("known collectibles resolve, and nonsense does not") {
         CHECK(pure::glyphDisplayName(index) != nullptr);
     }
 
-    CHECK(pure::findGlyphName("Obj_Ore_A") == pure::kNoGlyphName);  
+    CHECK(pure::findGlyphName("Obj_Ore_A") == pure::kNoGlyphName);
     CHECK(pure::findGlyphName("Obj_TreasureBox") == pure::kNoGlyphName);
     CHECK(pure::findGlyphName("TwnObj_HatenoVillage_Fence_A_01") == pure::kNoGlyphName);
     CHECK(pure::findGlyphName("") == pure::kNoGlyphName);
@@ -176,6 +184,7 @@ TEST_CASE("known collectibles resolve, and nonsense does not") {
 }
 
 TEST_CASE("grass and trees exclude themselves, with no deny-list") {
+
     const char* const scenery[] = {
         "Obj_TreeApple_A_01", "FldObj_Tree_A_01",   "Obj_Grass_A_01",
         "Obj_BoxIron_A_01",   "FldObj_RockBig_A_01",
@@ -186,6 +195,7 @@ TEST_CASE("grass and trees exclude themselves, with no deny-list") {
 }
 
 TEST_CASE("display names are clean text, never control codes") {
+
     std::uint32_t named = 0;
     for (std::uint32_t i = 0; i < glyphs::kNameCount; ++i) {
         const char* text = pure::glyphDisplayName(i);
@@ -209,6 +219,7 @@ TEST_CASE("the grid directory covers the placement table exactly") {
 }
 
 TEST_CASE("every placement is filed in the cell its own position computes") {
+
     for (int cz = 0; cz < glyphs::kGridHeight; ++cz) {
         for (int cx = 0; cx < glyphs::kGridWidth; ++cx) {
             const std::uint32_t cell =
@@ -260,6 +271,7 @@ TEST_CASE("a full-range query stays bounded and honours the radius") {
         CHECK(d2 <= 443.0f * 443.0f + 1.0f);
         CHECK(dx * dx + dz * dz <= 443.0f * 443.0f + 1.0f);
     });
+
     CHECK(visited < glyphs::kPlacementCount / 4);
 }
 
@@ -300,6 +312,7 @@ TEST_CASE("the cap keeps the nearest 48 and reports what it turned away") {
     for (const pure::Glyph& g : picker) {
         if (g.distanceSq > worst) worst = g.distanceSq;
     }
+
     CHECK(worst == doctest::Approx(static_cast<float>(pure::kMaxGlyphs)));
 }
 
@@ -314,7 +327,6 @@ TEST_CASE("under the cap, nothing is dropped") {
     CHECK(picker.count() == 10);
     CHECK(picker.overflow() == 0);
 }
-
 
 TEST_CASE("the cone accepts what is ahead and rejects what is not") {
     const float cosHalf = std::cos(pure::kConeRadians * 0.5f);
@@ -337,11 +349,13 @@ TEST_CASE("the cone accepts what is ahead and rejects what is not") {
 
 TEST_CASE("the cone turns with the heading and keeps its shape") {
     const float cosHalf = std::cos(pure::kConeRadians * 0.5f);
+
     CHECK(pure::withinCone(10.0f, 0.0f, 1.0f, 0.0f, cosHalf));
     CHECK_FALSE(pure::withinCone(0.0f, 10.0f, 1.0f, 0.0f, cosHalf));
 }
 
 TEST_CASE("ranking is distance and nothing else") {
+
     pure::GlyphPicker picker;
     picker.reset();
 

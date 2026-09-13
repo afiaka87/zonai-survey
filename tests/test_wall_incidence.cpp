@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis
+
 #include <doctest.h>
 
 #include <cmath>
@@ -24,7 +24,7 @@ TerrainSample planarHit(float depth, float phi, float theta) {
     sample.y = 0.0f;
     sample.z = sample.distance * directionZ;
     sample.normalX = normalX;
-    sample.normalY = 0.0f;  
+    sample.normalY = 0.0f;
     sample.normalZ = normalZ;
     sample.viewCosine =
         rayViewCosine(normalX, 0.0f, normalZ, directionX, 0.0f, directionZ);
@@ -38,11 +38,13 @@ TerrainSample squareOnReading(TerrainSample sample) {
     return sample;
 }
 
-}  
+}
 
 TEST_CASE("the lean measurement is the angle, not the old facing flag") {
+
     CHECK(rayViewCosine(-1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f) ==
           doctest::Approx(1.0f));
+
     CHECK(rayViewCosine(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f) ==
           doctest::Approx(1.0f));
 

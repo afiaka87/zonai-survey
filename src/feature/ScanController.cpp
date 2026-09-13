@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 #include <lib.hpp>
 
@@ -27,7 +28,7 @@ constexpr std::uint32_t probesThroughRing(std::uint32_t ring) {
 
 constexpr float kMaxWaterLiftMeters = 80.0f;
 
-}  
+}
 
 void ScanController::initialize(std::uintptr_t mainBase) {
     mainBase_ = mainBase;
@@ -97,6 +98,7 @@ pure::ScanVerdict ScanController::trigger() {
     for (auto& sample : ringTwoBack_) sample = pure::TerrainSample{};
     for (auto& drawn : previousArcDrawn_) drawn = false;
     for (auto& drawn : currentArcDrawn_) drawn = false;
+
     waterProbe_.resetScene();
 
     const std::uint32_t pulses = diagnostics_.pulses;
@@ -107,6 +109,7 @@ pure::ScanVerdict ScanController::trigger() {
     diagnostics_.lastVerdict = pure::ScanVerdict::Accepted;
 
     engine::cameraForward(headingX_, headingZ_);
+
     prober_.arm(x, y, z, headingX_, headingZ_, generation);
     wallProber_.arm(x, y, z, headingX_, headingZ_, generation);
     state_ = ScanState::Pulsing;
@@ -135,6 +138,7 @@ void ScanController::abandon(pure::ScanAbandonReason reason) {
     resetWallTracking();
     resetGroundTracking();
     diagnostics_.lastEnding = reason;
+
     if (diagnostics_.wallProbesComplete < pure::kWallProbes)
         Logging.Log(
             "[zonai-survey] wall fan incomplete at teardown probes=%u/%u",
@@ -306,6 +310,7 @@ void ScanController::resetWallTracking() {
     wallCut_ = 0;
     wallBelowCount_ = 0;
     wallLowestOffset_ = 0.0f;
+
     wallRowEligible_ = 0;
     wallNoHit_ = 0;
     wallNotSteep_ = 0;
@@ -345,9 +350,11 @@ void ScanController::rebuildWallSegments() {
     };
 
     for (std::uint32_t row = wallRowsReduced_; row < usableRows; ++row) {
+
         for (std::uint32_t column = 0; column < pure::kWallColumns; ++column) {
             const std::uint32_t index = row * pure::kWallColumns + column;
             const std::uint32_t count = wallProber_.sampleCount(index);
+
             if (count == 0) {
                 const pure::TerrainSample& shallow =
                     wallProber_.shallowSample(index);
@@ -360,8 +367,10 @@ void ScanController::rebuildWallSegments() {
             for (std::uint32_t layer = 0; layer < count; ++layer) {
                 const pure::TerrainSample& sample =
                     wallProber_.sample(index, layer);
+
                 if (!pure::acceptedWallSample(sample)) continue;
                 ++wallHits_;
+
                 const float offset = sample.y - originEye;
                 if (offset < -pure::kWallSubmergedMeters) ++wallBelowCount_;
                 if (offset < wallLowestOffset_) wallLowestOffset_ = offset;
@@ -445,7 +454,6 @@ void ScanController::rebuildWallSegments() {
     diagnostics_.crestTops = crestTops_;
 }
 
-
 void ScanController::emitRidgeCrests(std::uint32_t outerRing) {
     const std::uint32_t midRing = outerRing - 1u;
     const float spacing = pure::ringSpacing(midRing);
@@ -527,6 +535,7 @@ void ScanController::emitShallowRow(std::uint32_t row) {
         const pure::TerrainSample& a = wallProber_.shallowSample(left);
         const pure::TerrainSample& b = wallProber_.shallowSample(right);
         if (!a.hit || !b.hit) continue;
+
         if (shallowRedundantWithGround(a) && shallowRedundantWithGround(b)) {
             ++shallowRedundant_;
             continue;
@@ -548,7 +557,7 @@ bool ScanController::shallowRedundantWithGround(
     const float dx = sample.x - originX_;
     const float dz = sample.z - originZ_;
     const float radius = std::sqrt(dx * dx + dz * dz);
-    if (!(radius > 0.1f)) return true;  
+    if (!(radius > 0.1f)) return true;
 
     const float forward = dx * headingX_ + dz * headingZ_;
     const float side = dx * headingZ_ - dz * headingX_;
@@ -566,6 +575,7 @@ bool ScanController::shallowRedundantWithGround(
         pure::probeIndex(static_cast<std::uint32_t>(ring),
                          static_cast<std::uint32_t>(spoke)));
     if (!ground.hit) return false;
+
     const float dy = ground.y - sample.y;
     return (dy < 0.0f ? -dy : dy) <= pure::kShallowRedundancyMeters;
 }
@@ -587,6 +597,7 @@ void ScanController::applyWaterLift() {
 }
 
 void ScanController::composeSegments() {
+
     for (std::uint32_t i = 0; i < groundSegmentCount_; ++i)
         groundSegments_[i].lane = pure::surveyLaneFor(groundSegments_[i]);
     for (std::uint32_t i = 0; i < wallSegmentCount_; ++i)
@@ -653,8 +664,10 @@ void ScanController::tick() {
     ++tick_;
 
     if (state_ == ScanState::Pulsing) {
+
         prober_.authoriseTo(pure::authorisedProbeCount(tick_));
         {
+
             engine::perf::Timer rebuildTimer(engine::perf::gameRebuild);
             rebuildSegments();
         }
@@ -663,6 +676,7 @@ void ScanController::tick() {
             prober_.completed() >= pure::kProbeCount && wallProber_.complete()) {
             prober_.disarm();
             state_ = ScanState::Holding;
+
             Logging.Log(
                 "[zonai-survey] scan complete ticks=%u segments=%u dropped=%u "
                 "spikes=%u hits=%u/%u reach=%um ring=%u/%u range_clipped=%u "
@@ -672,6 +686,7 @@ void ScanController::tick() {
                 diagnostics_.reachMeters, diagnostics_.reachRing, pure::kRings,
                 prober_.rangeClipped(), diagnostics_.groundRaycasts,
                 static_cast<unsigned>(diagnostics_.sampleTicks));
+
             Logging.Log(
                 "[zonai-survey] survey cliff probes=%u/%u rays=%u hits=%u "
                 "segments=%u dropped=%u no_hit=%u not_steep=%u skipped=%u "
@@ -682,6 +697,7 @@ void ScanController::tick() {
                 diagnostics_.wallNoHit, diagnostics_.wallNotSteep,
                 wallProber_.slopeSkipped(), wallProber_.seeThrough(),
                 static_cast<unsigned>(diagnostics_.wallSampleTicks));
+
             Logging.Log(
                 "[zonai-survey] survey depth below_eye=%um samples=%u | "
                 "identity near=%u/%u mid=%u/%u far=%u/%u (surfaced/buried) "
@@ -690,6 +706,7 @@ void ScanController::tick() {
                 wallSurfaced_[0], wallBuried_[0], wallSurfaced_[1],
                 wallBuried_[1], wallSurfaced_[2], wallBuried_[2],
                 buriedFiltered_, buriedComposed_);
+
             Logging.Log(
                 "[zonai-survey] survey continuity refused=%u track=%u pair=%u "
                 "recovered=%u cell=%u | heals ground=%u cliff=%u shallow=%u "
@@ -719,4 +736,4 @@ void ScanController::serviceProbes(engine::RaycastFn original,
         wallProber_.service(original, liveQueryObject);
 }
 
-}  
+}

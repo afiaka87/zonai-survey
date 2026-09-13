@@ -7,11 +7,11 @@
 namespace totk::movement {
 
 enum class Axis : std::uint8_t {
-    JumpHeight,   
-    SprintSpeed,  
-    GlideSpeed,   
-    ClimbSpeed,   
-    ClimbJump,    
+    JumpHeight,
+    SprintSpeed,
+    GlideSpeed,
+    ClimbSpeed,
+    ClimbJump,
     Count,
 };
 
@@ -41,7 +41,7 @@ static_assert(kAxisCount == 5,
 
 inline std::size_t index(Axis axis) { return static_cast<std::size_t>(axis); }
 
-}  
+}
 
 inline void publishScaleQ8(Axis axis, std::uint16_t scaleQ8) {
     detail::g_scaleQ8[detail::index(axis)].store(scaleQ8,
@@ -70,4 +70,4 @@ inline void markAvailable(Axis axis, bool available) {
         std::memory_order_acquire);
 }
 
-}  
+}

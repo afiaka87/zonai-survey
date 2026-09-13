@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis
+
 #include <doctest.h>
 
 #include <cstring>
@@ -16,8 +16,7 @@ TerrainSample hit(float x, float y, float z, float normalY = 1.0f, float distanc
 
 TerrainSample miss() { return TerrainSample{}; }
 
-}  
-
+}
 
 TEST_CASE("flat ground gives a walkable rib that follows the surface") {
     ScanSegment out{};
@@ -41,6 +40,7 @@ TEST_CASE("a gentle rise stays walkable, a moderate one becomes steep") {
 }
 
 TEST_CASE("the drawn segment is the REAL surface transition, not a synthetic mark") {
+
     ScanSegment out{};
     REQUIRE(reduceRadialStep(hit(1.0f, 6.0f, 2.0f), hit(3.0f, 0.0f, 6.0f), 1, &out, GroundJoinRule::Recovered) == 1);
     CHECK(out.ax == doctest::Approx(1.0f));
@@ -50,6 +50,7 @@ TEST_CASE("the drawn segment is the REAL surface transition, not a synthetic mar
 }
 
 TEST_CASE("a step up a face is classified vertical, not divided by a tiny run") {
+
     ScanSegment out{};
     const TerrainSample lower = hit(4.0f, 10.0f, 4.0f, 0.05f);
     const TerrainSample upper = hit(4.0f, 12.5f, 4.0f, 0.05f);
@@ -59,6 +60,7 @@ TEST_CASE("a step up a face is classified vertical, not divided by a tiny run") 
 }
 
 TEST_CASE("a real drop is left as a break, not a diagonal through open air") {
+
     ScanSegment out{};
     const TerrainSample lip = hit(0.0f, 10.0f, 5.0f);
     const TerrainSample floorBelow = hit(0.0f, -20.0f, 9.0f);
@@ -68,12 +70,13 @@ TEST_CASE("a real drop is left as a break, not a diagonal through open air") {
 }
 
 TEST_CASE("rocks, ruins and banks are crawled over rather than skipped") {
+
     ScanSegment out{};
     const TerrainSample ground = hit(4.0f, 0.0f, 4.0f);
     const TerrainSample onTopOfRock = hit(4.2f, 2.5f, 4.0f, 0.4f);
     CHECK(linkable(ground, onTopOfRock));
     REQUIRE(reduceArcStep(ground, onTopOfRock, 3, &out, GroundJoinRule::Recovered) == 1);
-    CHECK(out.surface != SegmentClass::Ground);  
+    CHECK(out.surface != SegmentClass::Ground);
 }
 
 TEST_CASE("clean continuity does not draw a tent between flat deck and ground") {
@@ -89,6 +92,7 @@ TEST_CASE("clean continuity does not draw a tent between flat deck and ground") 
 }
 
 TEST_CASE("clean continuity preserves a real inclined surface") {
+
     const TerrainSample low = hit(0.0f, 0.0f, 0.0f, 0.8944272f);
     const TerrainSample high = hit(0.0f, 20.0f, 40.0f, 0.8944272f);
     ScanSegment out{};
@@ -97,6 +101,7 @@ TEST_CASE("clean continuity preserves a real inclined surface") {
 }
 
 TEST_CASE("segments reveal at their own ring, so the circles expand evenly") {
+
     ScanSegment out{};
     REQUIRE(reduceRadialStep(hit(0.0f, 0.0f, 0.0f), hit(1.0f, 0.0f, 0.0f), 7, &out, GroundJoinRule::Recovered) == 1);
     CHECK(out.revealWave == doctest::Approx(waveArrivalOf(7)));
@@ -130,6 +135,7 @@ TEST_CASE("a rib is refused without somewhere to write") {
 }
 
 TEST_CASE("nothing is permanently blocked any more") {
+
     static_assert(sizeof(reduceRadialStep(hit(0, 0, 0), hit(0, 0, 1), 1, nullptr, GroundJoinRule::Recovered)) ==
                       sizeof(uint32_t),
                   "reduceRadialStep reports only how many segments it wrote");
@@ -138,7 +144,6 @@ TEST_CASE("nothing is permanently blocked any more") {
     CHECK(reduceRadialStep(hit(0.0f, 0.0f, 2.5f), hit(0.0f, 5.0f, 5.0f), 1, &out, GroundJoinRule::Recovered) == 1);
     CHECK(reduceRadialStep(hit(0.0f, 5.0f, 5.0f), hit(0.0f, 5.2f, 7.5f), 2, &out, GroundJoinRule::Recovered) == 1);
 }
-
 
 TEST_CASE("neighbouring directions on flat ground join into a ring arc") {
     ScanSegment out{};
@@ -149,11 +154,12 @@ TEST_CASE("neighbouring directions on flat ground join into a ring arc") {
 }
 
 TEST_CASE("an arc across a real drop is not drawn") {
+
     ScanSegment out{};
     CHECK(reduceArcStep(hit(1.0f, 0.0f, 0.0f), hit(0.9f, 9.0f, 0.4f), 5, &out, GroundJoinRule::Recovered) == 0);
 }
 
-TEST_CASE("an arc with a missed end is not drawn - a gap leaves a hole") {
+TEST_CASE("an arc with a missed end is not drawn — a gap leaves a hole") {
     ScanSegment out{};
     CHECK(reduceArcStep(hit(1.0f, 0.0f, 0.0f), miss(), 5, &out, GroundJoinRule::Recovered) == 0);
     CHECK(reduceArcStep(miss(), hit(1.0f, 0.0f, 0.0f), 5, &out, GroundJoinRule::Recovered) == 0);
@@ -187,13 +193,17 @@ TEST_CASE("exactly at the cap nothing is reported as dropped") {
     CHECK(selection.dropped == 0);
 }
 TEST_CASE("the buffer holds the whole picture, so nothing truncates in normal use") {
+
     CHECK(kWorstCaseArcs == kSpokes * kRings);
     CHECK(kWorstCaseArcs + kWorstCaseRibs <= kMaxDrawnSegments);
+
     CHECK(kMaxGroundSegments <= kMaxDrawnSegments);
 }
 
 TEST_CASE("the forward joins are bounded by the lattice they walk") {
+
     CHECK(kWorstCaseRibs == kSpokes * (kRings - 1));
+
     CHECK(kRings == 37);
     CHECK(kSpokes == 64);
 }
@@ -203,20 +213,18 @@ TEST_CASE("every measured spoke exposes its radial history") {
     CHECK(kWorstCaseRibs == kSpokes * (kRings - 1));
 }
 
-
-
 namespace {
 
 void fillFlatRing(TerrainSample* ring, uint32_t count, float height = 10.0f) {
     for (uint32_t i = 0; i < count; ++i) ring[i] = hit(static_cast<float>(i), height, 0.0f);
 }
 
-}  
+}
 
 TEST_CASE("a roof beam standing proud of the ground is dropped, not drawn as a tent") {
     TerrainSample ring[kSpokes];
     fillFlatRing(ring, kSpokes);
-    ring[10].y = 16.0f;  
+    ring[10].y = 16.0f;
 
     const uint32_t dropped = despikeRing(ring, kSpokes);
     CHECK(dropped == 1);
@@ -228,13 +236,14 @@ TEST_CASE("a roof beam standing proud of the ground is dropped, not drawn as a t
 TEST_CASE("a probe that slipped between planks to the floor is also dropped") {
     TerrainSample ring[kSpokes];
     fillFlatRing(ring, kSpokes);
-    ring[20].y = 3.0f;  
+    ring[20].y = 3.0f;
 
     CHECK(despikeRing(ring, kSpokes) == 1);
     CHECK_FALSE(ring[20].hit);
 }
 
 TEST_CASE("a two-wide beam is still dropped") {
+
     TerrainSample ring[kSpokes];
     fillFlatRing(ring, kSpokes);
     ring[30].y = 15.0f;
@@ -246,12 +255,13 @@ TEST_CASE("a two-wide beam is still dropped") {
 }
 
 TEST_CASE("a real bank is NOT despiked away") {
+
     TerrainSample ring[kSpokes];
     fillFlatRing(ring, kSpokes);
     for (uint32_t i = 0; i < kSpokes / 2; ++i) ring[i].y = 16.0f;
 
     const uint32_t dropped = despikeRing(ring, kSpokes);
-    CHECK(dropped <= 2);  
+    CHECK(dropped <= 2);
     CHECK(ring[kSpokes / 4].hit);
     CHECK(ring[kSpokes - kSpokes / 4].hit);
 }
@@ -277,24 +287,24 @@ TEST_CASE("despiking refuses to run without enough context") {
 TEST_CASE("smoothing settles jitter but leaves a real step alone") {
     TerrainSample ring[kSpokes];
     fillFlatRing(ring, kSpokes);
-    ring[8].y = 10.6f;  
+    ring[8].y = 10.6f;
 
     const float stepFrom = 10.0f;
-    const float stepTo = 14.0f;  
+    const float stepTo = 14.0f;
     for (uint32_t i = kSpokes / 2; i < kSpokes; ++i) ring[i].y = stepTo;
 
     smoothRing(ring, kSpokes);
 
-    CHECK(ring[8].y < 10.6f);          
-    CHECK(ring[8].y > stepFrom);       
-    CHECK(ring[kSpokes / 2 + 4].y == doctest::Approx(stepTo));  
+    CHECK(ring[8].y < 10.6f);
+    CHECK(ring[8].y > stepFrom);
+    CHECK(ring[kSpokes / 2 + 4].y == doctest::Approx(stepTo));
     CHECK(ring[4].y == doctest::Approx(stepFrom));
 }
 
 TEST_CASE("smoothing never invents a sample or resurrects a dropped one") {
     TerrainSample ring[kSpokes];
     fillFlatRing(ring, kSpokes);
-    ring[12] = TerrainSample{};  
+    ring[12] = TerrainSample{};
 
     smoothRing(ring, kSpokes);
     CHECK_FALSE(ring[12].hit);
@@ -305,7 +315,7 @@ TEST_CASE("smoothing never invents a sample or resurrects a dropped one") {
 TEST_CASE("smoothing is refused on degenerate input") {
     TerrainSample ring[2];
     fillFlatRing(ring, 2);
-    smoothRing(ring, 2);   
+    smoothRing(ring, 2);
     smoothRing(nullptr, kSpokes);
     CHECK(true);
 }
@@ -317,17 +327,19 @@ TEST_CASE("the median helper is a real median") {
     CHECK(medianOfFive(three, 3) == doctest::Approx(4.0f));
 }
 
-
 TEST_CASE("the link rule follows the lattice out, or the far field draws nothing") {
+
     CHECK_FALSE(linkable(hit(0.0f, 0.0f, 0.0f), hit(0.0f, 20.0f, 2.5f)));
     CHECK(linkable(hit(0.0f, 0.0f, 0.0f), hit(0.0f, 20.0f, 40.0f)));
 }
 
 TEST_CASE("a genuine cliff is still a break however far out it is") {
+
     CHECK_FALSE(linkable(hit(0.0f, 0.0f, 0.0f), hit(0.0f, -140.0f, 40.0f)));
 }
 
 TEST_CASE("the near-field link tolerance is exactly what it was") {
+
     CHECK(linkRiseAllowance(hit(0.0f, 0.0f, 0.0f), hit(0.0f, 0.0f, 2.5f)) ==
           doctest::Approx(kMaxLinkRise));
 }
@@ -335,12 +347,12 @@ TEST_CASE("the near-field link tolerance is exactly what it was") {
 TEST_CASE("far-field terrain relief is not mistaken for a roof beam") {
     TerrainSample nearRing[kSpokes];
     fillFlatRing(nearRing, kSpokes);
-    nearRing[10].y = 16.0f;  
+    nearRing[10].y = 16.0f;
     CHECK(despikeRing(nearRing, kSpokes, 0) == 1);
 
     TerrainSample farRing[kSpokes];
     fillFlatRing(farRing, kSpokes);
-    farRing[10].y = 16.0f;  
+    farRing[10].y = 16.0f;
     CHECK(despikeRing(farRing, kSpokes, kRings - 1) == 0);
     CHECK(farRing[10].hit);
 }
@@ -356,8 +368,8 @@ TEST_CASE("a real outlier is still dropped at the far edge") {
 TEST_CASE("smoothing settles far-field jitter without flattening far-field relief") {
     TerrainSample ring[kSpokes];
     fillFlatRing(ring, kSpokes);
-    ring[8].y = 14.0f;                                                  
-    for (uint32_t i = kSpokes / 2; i < kSpokes; ++i) ring[i].y = 60.0f;  
+    ring[8].y = 14.0f;
+    for (uint32_t i = kSpokes / 2; i < kSpokes; ++i) ring[i].y = 60.0f;
 
     smoothRing(ring, kSpokes, kRings - 1);
 
@@ -373,9 +385,9 @@ TEST_CASE("every scaled threshold keeps its near-field value as a floor") {
     }
     CHECK(spikeRiseFor(0) == doctest::Approx(kSpikeRise));
     CHECK(smoothLimitFor(0) == doctest::Approx(kSmoothLimit));
+
     CHECK(spikeRiseFor(kRings - 1) > spikeRiseFor(0) * 4.0f);
 }
-
 
 TEST_CASE("a coherent four-sample cell recovers a track-only missing edge") {
     const TerrainSample currentLeft = hit(0.0f, 0.0f, 1.0f);
@@ -407,6 +419,7 @@ TEST_CASE("cell recovery refuses an edge across a real layer break") {
 }
 
 TEST_CASE("a ground track follows curved terrain without cutting it") {
+
     GroundTrack track{};
     ScanSegment out{};
     float y = 0.0f;
@@ -414,7 +427,7 @@ TEST_CASE("a ground track follows curved terrain without cutting it") {
     TerrainSample previous = hit(0.0f, y, 0.0f);
     std::uint32_t drawn = 0;
     for (std::uint32_t i = 0; i < 20; ++i) {
-        step += 0.05f;  
+        step += 0.05f;
         y += step;
         const TerrainSample next = hit(0.0f, y, static_cast<float>(i + 1) * 2.5f);
         drawn += trackedRadialStep(track, previous, next, 1, &out);
@@ -424,7 +437,8 @@ TEST_CASE("a ground track follows curved terrain without cutting it") {
 }
 
 TEST_CASE("a ground track refuses to walk off the surface it is following") {
-    const float steep = 0.5f;  
+
+    const float steep = 0.5f;
     GroundTrack track{};
     ScanSegment out{};
     const float allowance = groundBendAllowance(ringSpacing(1));
@@ -447,6 +461,7 @@ TEST_CASE("a ground track refuses to walk off the surface it is following") {
 }
 
 TEST_CASE("ground tracks never invent a join the pairwise rule rejects") {
+
     for (std::uint32_t ring = 1; ring < kRings; ++ring) {
         GroundTrack arcTrack{};
         GroundTrack ribTrack{};
@@ -481,6 +496,7 @@ TEST_CASE("ground tracks never invent a join the pairwise rule rejects") {
 }
 
 TEST_CASE("the Baseline continuity setting leaves the ground walk untouched") {
+
     GroundTrack track{};
     TerrainSample previous = hit(0.0f, 0.0f, 0.0f);
     for (std::uint32_t i = 0; i < 10; ++i) {
@@ -502,6 +518,7 @@ TEST_CASE("a missed measurement breaks the ground track instead of bridging it")
     REQUIRE(trackedRadialStep(track, a, b, 1, &out) == 1);
     CHECK(trackedRadialStep(track, b, miss(), 1, &out) == 0);
     CHECK(trackedRadialStep(track, miss(), b, 1, &out) == 0);
+
     const TerrainSample c = hit(0.0f, 0.8f, 5.0f);
     CHECK(trackedRadialStep(track, b, c, 1, &out) == 1);
 }
@@ -511,12 +528,14 @@ TEST_CASE("the ground bend allowance scales with lattice spacing and keeps a flo
         CHECK(groundBendAllowance(ringSpacing(ring)) >= kGroundBendFloorMeters);
         CHECK(groundBendAllowance(ringSpokeSpacing(ring)) >= kGroundBendFloorMeters);
     }
+
     CHECK(groundBendAllowance(ringSpacing(kRings - 1)) >
           groundBendAllowance(ringSpacing(0)) * 4.0f);
     CHECK(groundBendAllowance(0.0f) == doctest::Approx(kGroundBendFloorMeters));
 }
 
 TEST_CASE("a refused ground join names the rule that refused it") {
+
     const float steep = 0.5f;
     GroundTrack track{};
     ScanSegment out{};
@@ -553,16 +572,21 @@ TEST_CASE("a refused ground join names the rule that refused it") {
 }
 
 TEST_CASE("the bend allowance grows with slope but flat ground keeps its floor") {
+
     const float span = 5.0f;
+
     CHECK(groundBendAllowance(span, 0.0f) == doctest::Approx(span * kGroundBendSlopeChange));
     CHECK(groundBendAllowance(span, 0.3f) == doctest::Approx(span * kGroundBendSlopeChange));
+
     CHECK(groundBendAllowance(span, 0.9f) == doctest::Approx(span * 0.9f));
     CHECK(groundBendAllowance(span, 0.9f) > groundBendAllowance(span, 0.0f));
+
     CHECK(groundBendAllowance(0.1f, 0.9f) == doctest::Approx(kGroundBendFloorMeters));
 }
 
 TEST_CASE("a steep track admits a step the constant gate refused") {
-    const float steep = 0.5f;  
+
+    const float steep = 0.5f;
     GroundTrack track{};
     ScanSegment out{};
 
@@ -578,15 +602,19 @@ TEST_CASE("a steep track admits a step the constant gate refused") {
 }
 
 TEST_CASE("a ridge point is a radial local maximum with real prominence") {
-    const float spacing = 5.0f;  
+    const float spacing = 5.0f;
     CHECK(crestProminenceFor(spacing) == doctest::Approx(kCrestProminenceMeters));
     const TerrainSample inner = hit(0.0f, 10.0f, 20.0f);
     const TerrainSample outer = hit(0.0f, 10.0f, 30.0f);
     CHECK(groundRidgePoint(inner, hit(0.0f, 12.0f, 25.0f), outer, spacing));
+
     CHECK_FALSE(groundRidgePoint(inner, hit(0.0f, 11.0f, 25.0f), outer, spacing));
+
     CHECK_FALSE(groundRidgePoint(inner, hit(0.0f, 12.0f, 25.0f),
                                  hit(0.0f, 14.0f, 30.0f), spacing));
+
     CHECK_FALSE(groundRidgePoint(miss(), hit(0.0f, 12.0f, 25.0f), outer, spacing));
+
     CHECK(crestProminenceFor(40.0f) == doctest::Approx(4.0f));
     CHECK_FALSE(groundRidgePoint(inner, hit(0.0f, 12.0f, 25.0f), outer, 40.0f));
 }

@@ -4,14 +4,14 @@
 
 namespace nn::fs {
 nn::Result MountSdCard(char const* mount);
-}  
+}
 
 namespace totk::engine {
 namespace {
 
 bool gSdCardReady = false;
 
-}  
+}
 
 SdCardMountResult ensureSdCardMounted() {
     if (gSdCardReady) return SdCardMountResult::AlreadyReady;
@@ -23,4 +23,4 @@ SdCardMountResult ensureSdCardMounted() {
     return SdCardMountResult::MountedNow;
 }
 
-}  
+}

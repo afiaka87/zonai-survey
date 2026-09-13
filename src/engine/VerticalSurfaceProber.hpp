@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <atomic>
@@ -11,7 +13,6 @@
 
 namespace zonai_survey::engine {
 
-// Gameplay reads completed samples after the physics worker publishes them.
 class VerticalSurfaceProber {
   public:
     void arm(float linkX, float linkY, float linkZ, float headingX,
@@ -38,6 +39,7 @@ class VerticalSurfaceProber {
             layer < pure::kWallDepthLayers ? layer : 0;
         return samples_[pure::wallSampleIndex(safeProbe, safeLayer)];
     }
+
     [[nodiscard]] const pure::TerrainSample& shallowSample(
         std::uint32_t probe) const {
         return shallowSamples_[probe < pure::kWallProbes ? probe : 0];
@@ -45,12 +47,14 @@ class VerticalSurfaceProber {
     [[nodiscard]] std::uint32_t raycastsIssued() const {
         return raycastsIssued_.load(std::memory_order_acquire);
     }
+
     [[nodiscard]] std::uint32_t slopeSkipped() const {
         return slopeSkipped_.load(std::memory_order_relaxed);
     }
     [[nodiscard]] std::uint32_t seeThrough() const {
         return seeThrough_.load(std::memory_order_relaxed);
     }
+
     [[nodiscard]] std::uint64_t sampleTicks() const {
         return sampleTicks_.load(std::memory_order_relaxed);
     }
@@ -71,6 +75,7 @@ class VerticalSurfaceProber {
     };
 
     std::uint32_t castNode(RaycastFn original, std::uint32_t index);
+
     std::uint32_t castProbeRay(RaycastFn original, const pure::WallRay& ray,
                                pure::TerrainSample* layersOut,
                                std::uint32_t& storedOut,
@@ -98,4 +103,4 @@ class VerticalSurfaceProber {
         queryObject_[totk::engine::layout::kRaycastObjectSize]{};
 };
 
-}  
+}

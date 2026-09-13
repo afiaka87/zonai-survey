@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <cmath>
@@ -41,14 +43,13 @@ constexpr SurveyRgba mixColor(const SurveyRgba& a, const SurveyRgba& b,
             a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t};
 }
 
-// Each batch interpolates between two RGBA endpoints using one scalar per vertex.
 inline constexpr SurveyRgba kLaneStart[kSlopeLaneCount] = {
-    {0.10f, 0.95f, 1.00f, 0.35f},  
-    {0.95f, 0.75f, 0.00f, 0.35f},  
+    {0.10f, 0.95f, 1.00f, 0.35f},
+    {0.95f, 0.75f, 0.00f, 0.35f},
 };
 inline constexpr SurveyRgba kLaneEnd[kSlopeLaneCount] = {
-    {0.90f, 0.87f, 0.00f, 0.35f},  
-    {1.00f, 0.22f, 0.22f, 0.35f},  
+    {0.90f, 0.87f, 0.00f, 0.35f},
+    {1.00f, 0.22f, 0.22f, 0.35f},
 };
 
 constexpr const SurveyRgba& laneStartColor(std::uint32_t lane) {
@@ -65,12 +66,12 @@ struct SlopeStop {
 };
 
 inline constexpr SlopeStop kSlopeStops[kSlopeBandCount] = {
-    {SlopeLane::Cool, 0.00f},  
-    {SlopeLane::Cool, 0.42f},  
-    {SlopeLane::Cool, 1.00f},  
-    {SlopeLane::Warm, 0.00f},  
-    {SlopeLane::Warm, 0.50f},  
-    {SlopeLane::Warm, 1.00f},  
+    {SlopeLane::Cool, 0.00f},
+    {SlopeLane::Cool, 0.42f},
+    {SlopeLane::Cool, 1.00f},
+    {SlopeLane::Warm, 0.00f},
+    {SlopeLane::Warm, 0.50f},
+    {SlopeLane::Warm, 1.00f},
 };
 
 constexpr std::uint32_t bandIndex(SlopeBand band) {
@@ -89,7 +90,7 @@ constexpr float slopeRate(SlopeBand band) {
 inline constexpr float kSlopeBlendHalfWidth = 0.06f;
 
 constexpr float continuousSlopeRate(float steepness, SlopeBand band) {
-    if (!(steepness >= 0.0f)) return slopeRate(band);  // sentinel / NaN
+    if (!(steepness >= 0.0f)) return slopeRate(band);
     struct BandJoin {
         float threshold;
         SlopeBand low;
@@ -123,7 +124,6 @@ constexpr SurveyRgb slopeColor(SlopeBand band) {
     return {color.r, color.g, color.b};
 }
 
-
 inline constexpr SurveyRgb kSurveyPearl{0.88f, 0.93f, 0.97f};
 
 inline float surveyRangeProgress(float revealWave) {
@@ -140,7 +140,6 @@ inline float surveyRangePearl(float revealWave) {
     if (progress >= kSurveyNearPearlEnd) return 0.0f;
     return kSurveyNearPearl * (1.0f - progress / kSurveyNearPearlEnd);
 }
-
 
 inline SurveyRgba surveyLaneColor(SlopeLane lane, bool end, float revealWave) {
     const std::uint32_t index = laneIndex(lane);
@@ -174,4 +173,4 @@ inline SurveyRgba surveySegmentColor(const ScanSegment& segment,
                     continuousSlopeRate(segment.steepness, segment.slopeBand));
 }
 
-}  
+}

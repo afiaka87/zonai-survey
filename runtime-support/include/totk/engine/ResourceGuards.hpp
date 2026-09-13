@@ -7,12 +7,12 @@
 namespace totk::guards {
 
 enum class Guard : std::uint8_t {
-    PlayerStamina,  
-    ZonaiBattery,   
-    Arrows,         
-    ZonaiDevices,   
-    HorseStamina,   
-    ClimbGrip,      
+    PlayerStamina,
+    ZonaiBattery,
+    Arrows,
+    ZonaiDevices,
+    HorseStamina,
+    ClimbGrip,
     Count,
 };
 
@@ -34,7 +34,7 @@ static_assert(kGuardCount == 6,
 
 inline std::size_t index(Guard guard) { return static_cast<std::size_t>(guard); }
 
-}  
+}
 
 inline void publishActive(Guard guard, bool active) {
     detail::g_active[detail::index(guard)].store(active,
@@ -56,4 +56,4 @@ inline void markAvailable(Guard guard, bool available) {
         std::memory_order_acquire);
 }
 
-}  
+}

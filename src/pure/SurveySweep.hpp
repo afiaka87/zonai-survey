@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <cmath>
@@ -9,9 +11,7 @@
 
 namespace zonai_survey::pure {
 
-// The visible band advances in ring coordinates rather than world metres.
 inline constexpr std::uint32_t kRevealSteps = 4;
-
 
 inline constexpr float kSweepBandRings = 14.0f;
 
@@ -81,7 +81,6 @@ inline float sweepBodyAlpha(float behind) {
     return inverted * inverted * (3.0f - 2.0f * inverted);
 }
 
-
 inline constexpr float kSurveyWidthGain = 1.60f;
 
 inline constexpr float kSurveyBodyBrightness = 0.90f;
@@ -100,7 +99,6 @@ inline float sweepAlpha(float revealWave, std::uint32_t tick) {
     return body * (kSurveyBodyBrightness +
                    (1.0f - kSurveyBodyBrightness) * crest);
 }
-
 
 inline constexpr float kSurveyStandoffMeters = 4.0f * kGroundClearanceMeters;
 
@@ -126,7 +124,7 @@ static_assert(kSweepEndTicks + kCrestFadeTicks < kSweepLifetimeTicks,
               "ridges would vanish mid-fade");
 
 inline float sweepAfterglow(float behind, std::uint32_t tick) {
-    if (behind < 0.0f) return 0.0f;  
+    if (behind < 0.0f) return 0.0f;
     if (tick <= kSweepEndTicks) return kCrestHoldLevel;
     const float t = static_cast<float>(tick - kSweepEndTicks) /
                     static_cast<float>(kCrestFadeTicks);
@@ -164,4 +162,4 @@ inline float sweepTicksToReach(float waveCoord) {
     return sweepBirthWarpInverse(eased) * static_cast<float>(kSweepTicks);
 }
 
-}  
+}

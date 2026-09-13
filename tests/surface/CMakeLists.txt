@@ -1,0 +1,7 @@
+add_executable(fidelity_tests test_policy.cpp test_trace.cpp test_aesthetics.cpp)
+target_compile_features(fidelity_tests PRIVATE cxx_std_20)
+target_link_libraries(fidelity_tests PRIVATE doctest::doctest)
+target_include_directories(fidelity_tests PRIVATE ../../src/surface stubs)
+add_test(NAME surface_scan COMMAND fidelity_tests)
+find_program(UV_EXECUTABLE uv REQUIRED)
+add_test(NAME shader_bindings COMMAND "${UV_EXECUTABLE}" run --no-project python "${CMAKE_CURRENT_SOURCE_DIR}/test_shader_bindings.py")

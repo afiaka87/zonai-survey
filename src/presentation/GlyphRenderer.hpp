@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <cstdint>
@@ -21,12 +23,12 @@ namespace zonai_survey::render {
 
 struct GlyphDraw {
     float x = 0.0f, y = 0.0f, z = 0.0f;
-    float distanceSq = 0.0f;  
+    float distanceSq = 0.0f;
     float alpha = 1.0f;
     std::uint16_t name = 0;
     std::uint16_t flags = 0;
     std::uint8_t cls = 0;
-    std::uint8_t icon = 0;  
+    std::uint8_t icon = 0;
 };
 
 struct GlyphFrame {
@@ -46,6 +48,7 @@ bool symbolProbeVisible();
 
 std::uint32_t lastGlyphsDrawn();
 std::uint32_t lastGlyphsOffscreen();
+
 std::uint32_t lastNamesDropped();
 
-}  
+}

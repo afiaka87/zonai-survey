@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis
 #include <doctest.h>
 #include <string>
 #include "SurveyAssets.hpp"

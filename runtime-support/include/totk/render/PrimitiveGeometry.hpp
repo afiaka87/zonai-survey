@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <cmath>
@@ -48,13 +50,14 @@ inline constexpr float kEndCapOverlap = 0.65f;
 
 struct DepthLift {
     float keep = 1.0f;
-    Vec3 anchor{};  
+    Vec3 anchor{};
     bool active = false;
 };
 
 [[nodiscard]] inline DepthLift depthLiftFor(float fraction, float eyeX,
                                             float eyeY, float eyeZ) {
     DepthLift out{};
+
     if (!(fraction > 0.0f) || !(fraction < 1.0f) || !std::isfinite(fraction))
         return out;
     if (!std::isfinite(eyeX) || !std::isfinite(eyeY) || !std::isfinite(eyeZ))
@@ -146,4 +149,4 @@ struct DepthLift {
     return out;
 }
 
-}  
+}

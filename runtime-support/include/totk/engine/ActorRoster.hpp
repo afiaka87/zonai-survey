@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 
 #pragma once
@@ -236,4 +237,4 @@ visitActiveProcesses(const ActiveProcessRosterAccess& roster, Visitor&& visitor)
     return core::Result<RosterWalkReport, RosterError>::success(report);
 }
 
-} 
+}

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 
 #pragma once
 
 #include <cstring>
 
-#include <lib.hpp>  
+#include <lib.hpp>
 
 namespace totk::ui {
 
@@ -23,4 +24,4 @@ inline void emitDiagnostic(const char* message) {
     svcOutputDebugString(message, strlen(message));
 }
 
-} 
+}

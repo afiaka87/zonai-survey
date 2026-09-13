@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) aquacluck and totk-lotuskit contributors; modifications Copyright (C) Clay Mullis.
+
+// Original work Copyright (C) aquacluck and the totk-lotuskit contributors
+// Source: https://github.com/aquacluck/totk-lotuskit (GPL-2.0-only).
+
+// Modifications Copyright (C) Clay Mullis
 
 #pragma once
 #include <atomic>
-#include "totk/engine/SymResolve.hpp"  
+#include "totk/engine/SymResolve.hpp"
 
 #include <nn/nn.h>
 #include <nn/util.h>
@@ -22,11 +26,11 @@
 #include "totk/ui/OverlayLayout.hpp"
 
 namespace lotuskit {
-    // Frame data uses a stolen game heap and is reset once per input tick.
     class TextWriterExt;
     using TextWriterDrawCallback = void(TextWriterExt*, sead::Vector2f*);
 
     struct TextWriterDrawNode {
+
         char* outputText;
         TextWriterDrawCallback* fn;
         std::atomic<TextWriterDrawNode*> next;
@@ -38,8 +42,8 @@ namespace lotuskit {
 
     struct TextWriterFrame {
         static constexpr size_t MAX_DRAWLISTS = 8;
-        inline static std::atomic<TextWriterDrawNode*> drawLists[MAX_DRAWLISTS] = {0}; 
-        inline static sead::FrameHeap* heap = nullptr; 
+        inline static std::atomic<TextWriterDrawNode*> drawLists[MAX_DRAWLISTS] = {0};
+        inline static sead::FrameHeap* heap = nullptr;
         nn::os::MutexType drawListLock;
     };
 
@@ -49,12 +53,12 @@ namespace lotuskit {
         u32 ttlFrames;
     };
 
-    class TextWriterExt; 
+    class TextWriterExt;
 
     class TextWriter {
         public:
-        inline static sead::Color4f defaultColor = {1.0, 1.0, 1.0, 1.0}; 
-        inline static sead::Color4f shadowColor = {0, 0, 0, 1}; 
+        inline static sead::Color4f defaultColor = {1.0, 1.0, 1.0, 1.0};
+        inline static sead::Color4f shadowColor = {0, 0, 0, 1};
         inline static void setDefaultColor(const sead::Color4f& v) { defaultColor = v; }
         inline static void setShadowColor(const sead::Color4f& v) { shadowColor = v; }
         inline static void invertColors() { std::swap(defaultColor, shadowColor); }
@@ -70,15 +74,17 @@ namespace lotuskit {
             appendNewDrawNode(drawList_i, buf, nullptr, scale, &color);
         }
         inline static void appendCallback(size_t drawList_i, TextWriterDrawCallback* fn) {
-            appendNewDrawNode(drawList_i, nullptr, fn); // caller owns fn lifetime
+            appendNewDrawNode(drawList_i, nullptr, fn);
         }
         inline static void toastf(u32 ttlFrames, const char* fmt, auto&&... args) {
             TextWriterToastNode* newNode = appendNewToastNode(ttlFrames);
             if (newNode) {
+
                 char buf[2000];
                 nn::util::SNPrintf(buf, sizeof(buf), fmt, std::forward<decltype(args)>(args)...);
                 size_t n = strlen(buf) + 1;
                 newNode->outputText = (char*)debugDrawerInternalHeap->alloc(n);
+
                 if (newNode->outputText != nullptr) {
                     std::memcpy(newNode->outputText, buf, n);
                 }
@@ -91,12 +97,14 @@ namespace lotuskit {
         static TextWriterFrame frame;
         inline static sead::Heap* debugDrawerInternalHeap = nullptr;
         inline static void assignHeap(sead::Heap* heap) {
+
             debugDrawerInternalHeap = heap;
         }
         inline static void createFrameHeap() {
+
             using impl_t = sead::FrameHeap* (size_t, const sead::SafeString&, sead::Heap*, s32, sead::Heap::HeapDirection, bool);
             auto impl = EXL_SYM_RESOLVE<impl_t*>("sead::FrameHeap::create");
-            frame.heap = impl(0x4000, "lotuskit::TextWriter", debugDrawerInternalHeap, 8, (sead::Heap::HeapDirection)1, false); 
+            frame.heap = impl(0x4000, "lotuskit::TextWriter", debugDrawerInternalHeap, 8, (sead::Heap::HeapDirection)1,   false);
 
             nn::os::InitializeMutex(&frame.drawListLock, true, 0);
         }
@@ -113,18 +121,20 @@ namespace lotuskit {
             appendNewDrawNode(drawList_i, text, fn, scale, color, true, centerX);
         }
         static TextWriterToastNode* appendNewToastNode(u32 ttlFrames);
-        static void drawFrame(TextWriterExt*);   // render only; resetFrame clears the queue
-        static void drawToasts(TextWriterExt*);  // render only; resetFrame ages toasts
-        static void resetFrame();                
+        static void drawFrame(TextWriterExt*);
+        static void drawToasts(TextWriterExt*);
+        static void resetFrame();
     };
 
     class TextWriterExt: public sead::TextWriter {
         public:
         void getCursorFromTopLeftImpl(sead::Vector2f* pos) const {
+
             pos->x = this->mCursor.x + 640.0;
             pos->y = 360.0 - this->mCursor.y;
         }
         void pprintf(sead::Vector2f &pos, const sead::Color4f& color, const char* fmt, auto&&... args) {
+
             this->mColor = lotuskit::TextWriter::shadowColor;
             this->setCursorFromTopLeft(pos);
             this->printf(fmt, std::forward<decltype(args)>(args)...);
@@ -142,8 +152,10 @@ namespace lotuskit {
     };
 
     namespace DebugDrawHooks {
+
         using WorldDrawCallback = void(*)(agl::lyr::Layer*, const agl::lyr::RenderInfo&,
                                           TextWriterExt*);
+
         using NativeWorldDrawCallback = void(*)(agl::lyr::Layer*,
                                                 const agl::lyr::RenderInfo&);
         inline WorldDrawCallback g_worldDrawCallback = nullptr;
@@ -185,18 +197,19 @@ namespace lotuskit {
         void initializeDebugDrawers(const GraphicsModuleCreateArg* original);
 
         HOOK_DEFINE_INLINE(BootupInitDebugDrawersHook) {
-            static constexpr auto s_name = "agl::create_arg"; 
+            static constexpr auto s_name = "agl::create_arg";
             static void Callback(exl::hook::InlineCtx* ctx) {
                 initializeDebugDrawers(reinterpret_cast<GraphicsModuleCreateArg*>(ctx->X[1]));
             }
         };
 
         HOOK_DEFINE_INLINE(DebugDrawLayerMaskHook) {
-            static constexpr auto s_name = "agl::lyr::RenderDisplay::drawLayer_::ensure_font"; 
+            static constexpr auto s_name = "agl::lyr::RenderDisplay::drawLayer_::ensure_font";
             static void Callback(exl::hook::InlineCtx* ctx) {
+
                 auto* layer = (agl::lyr::Layer*)(ctx->X[21]);
-                ctx->W[8] = 0x28; 
-                layer->mRenderFlags |= 1 << 13; 
+                ctx->W[8] = 0x28;
+                layer->mRenderFlags |= 1 << 13;
             }
         };
 
@@ -204,7 +217,7 @@ namespace lotuskit {
             static constexpr auto s_name = "agl::lyr::Layer::drawDebugInfo_";
             static void Callback(agl::lyr::Layer* layer, const agl::lyr::RenderInfo& info) {
                 auto* sead_draw_ctx = dynamic_cast<sead::DrawContext*>(info.draw_ctx);
-                if (sead_draw_ctx == nullptr) { return; } 
+                if (sead_draw_ctx == nullptr) { return; }
 
                 if (g_nativeWorldDrawCallback != nullptr) {
                     g_nativeWorldDrawCallback(layer, info);
@@ -224,6 +237,6 @@ namespace lotuskit {
             }
         };
 
-    } 
+    }
 
-} 
+}

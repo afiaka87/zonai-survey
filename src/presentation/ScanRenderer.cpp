@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #include <lib.hpp>
 
 #include <atomic>
@@ -27,9 +29,9 @@ static_assert(pure::kRingBlockBytes ==
 
 bool g_installed = false;
 
-
 ScanFrame g_frames[2]{};
 std::atomic<std::uint32_t> g_front{0};
+
 std::atomic<std::uint32_t> g_tick{0};
 
 std::atomic<std::uint32_t> g_lastDrawCalls{0};
@@ -37,6 +39,7 @@ std::atomic<std::uint32_t> g_lastDropped{0};
 
 std::atomic<std::uint32_t> g_lastSegmentsDrawn{0};
 std::atomic<bool> g_lastBatched{false};
+
 std::atomic<std::uint32_t> g_lastRefused{0};
 
 bool g_loggedRendered = false;
@@ -110,6 +113,7 @@ std::uint32_t drawSurveyBeamBuffer(const ScanFrame& frame, std::uint32_t tick,
                                    std::uint32_t& outRefused) {
     outConsidered = 0;
     outRefused = 0;
+
     const seam::DepthLift clearance =
         eye.valid ? seam::depthLiftFor(pure::kSurveyDepthLiftFraction, eye.x, eye.y, eye.z)
                   : seam::DepthLift{};
@@ -128,9 +132,11 @@ std::uint32_t drawSurveyBeamBuffer(const ScanFrame& frame, std::uint32_t tick,
 
         const float alpha = pure::surveyPassAlpha(head.crestline, head.revealWave, tick);
         const float lift = pure::sweepLift(head.revealWave, tick);
+
         sead::Color4f startColor{0.0f, 0.0f, 0.0f, 1.0f};
         sead::Color4f endColor{0.0f, 0.0f, 0.0f, 1.0f};
         passLaneColors(head.lane, head.revealWave, alpha, startColor, endColor);
+
         if (pure::isCliffVertical(head)) {
             startColor.a *= pure::kCliffVerticalAlphaScale;
             endColor.a *= pure::kCliffVerticalAlphaScale;
@@ -148,6 +154,7 @@ std::uint32_t drawSurveyBeamBuffer(const ScanFrame& frame, std::uint32_t tick,
             const float rate = pure::continuousSlopeRate(frame.segments[i].steepness,
                                                          frame.segments[i].slopeBand);
             if (groupBeams != 0) {
+
                 block.cpu[block.written] = block.cpu[block.written - 1u];
                 ++block.written;
                 writeBeamVertex(block, frame.beams[i].vertices[0], lift, rate, clearance);
@@ -175,6 +182,7 @@ std::uint32_t drawSurveyCylinderPass(const ScanFrame& frame, std::uint32_t tick,
                                      std::uint32_t& outConsidered) {
     outConsidered = 0;
     std::uint32_t calls = 0;
+
     const seam::DepthLift clearance =
         world.eye.valid ? seam::depthLiftFor(pure::kSurveyDepthLiftFraction, world.eye.x,
                                              world.eye.y, world.eye.z)
@@ -203,6 +211,7 @@ std::uint32_t drawSurveyCylinderPass(const ScanFrame& frame, std::uint32_t tick,
 #if OVERLAY_DEBUG_HUD
 std::uint64_t g_drawPerfWindowStart = 0;
 std::uint32_t g_drawPerfQuietWindows = 0;
+
 std::uint64_t g_seamGfxTicksBase = 0;
 
 void flushDrawPerf() {
@@ -255,8 +264,8 @@ void flushDrawPerf() {
 void flushDrawPerf() {}
 #endif
 
-
 bool surveyWantsDraw() {
+
     ++engine::perf::drawLayerCalls;
     flushDrawPerf();
     ++engine::perf::drawGameplayCalls;
@@ -332,7 +341,7 @@ void surveyDraw(const seam::WorldFrame& world) {
     }
 }
 
-}  
+}
 
 bool install(std::uintptr_t mainBase) {
     if (g_installed) return true;
@@ -341,6 +350,7 @@ bool install(std::uintptr_t mainBase) {
                     "into the world this session");
         return false;
     }
+
     if (!seam::registerDrawer("zonai-survey/survey", surveyWantsDraw, surveyDraw, true)) {
         Logging.Log("[zonai-survey] world seam refused the survey drawer; nothing will be "
                     "drawn into the world this session");
@@ -374,6 +384,7 @@ void publish(const pure::ScanSegment* segments, std::uint32_t count, std::uint32
             seam::Vec3{segment.ax, segment.ay, segment.az},
             seam::Vec3{segment.bx, segment.by, segment.bz}, radius);
     }
+
     frame.groupCount =
         pure::buildGroupSpans(frame.segments, frame.count, frame.groups, pure::kMaxSurveyGroups);
     frame.generation = ++generation;
@@ -414,4 +425,4 @@ std::uint32_t lastRefusedGroups() {
     return g_lastRefused.load(std::memory_order_relaxed);
 }
 
-}  
+}

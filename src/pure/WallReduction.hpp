@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis
 #pragma once
 
 #include <cmath>
@@ -17,6 +16,7 @@ enum class WallEdgeAxis : std::uint8_t {
 };
 
 inline constexpr float kWallMinJoinMeters = 3.0f;
+
 inline constexpr float kWallMinViewCosine = 0.30f;
 inline constexpr float kCleanWallMinDepthAllowance = 2.0f;
 inline constexpr float kCleanWallDepthScale = 1.25f;
@@ -59,6 +59,7 @@ inline float wallJoinAllowanceBase(const TerrainSample& a,
                             ? wallAzimuthStep()
                             : wallElevationStep();
     const float meanDistance = 0.5f * (a.distance + b.distance);
+
     const float scaled = meanDistance * angle * angleScale * kWallJoinScale /
                          wallViewCosine(a, b);
     return scaled > kWallMinJoinMeters ? scaled : kWallMinJoinMeters;
@@ -145,6 +146,7 @@ inline float wallDepthAllowance(const TerrainSample& a,
                             : wallElevationStep();
     const float meanDistance = 0.5f * (a.distance + b.distance);
     const float expectedCell = meanDistance * angle * angleScale;
+
     const float scaledDepth =
         expectedCell * (kCleanWallDepthScale + wallViewTangent(a, b));
     return scaledDepth > kCleanWallMinDepthAllowance
@@ -194,6 +196,7 @@ inline bool wallLinkable(const TerrainSample& a, const TerrainSample& b,
 }
 
 inline float wallRevealWave(const TerrainSample& a, const TerrainSample& b) {
+
     const float distance = a.distance > b.distance ? a.distance : b.distance;
     float wave = std::ceil(waveCoordForRadius(distance));
     if (wave < 1.0f) wave = 1.0f;
@@ -255,10 +258,9 @@ inline std::uint32_t reduceShallowAcross(const TerrainSample& a,
 
 inline constexpr std::uint32_t kCrestTopRowTolerance = 2;
 
-
 struct WallTrack {
-    TerrainSample head{};        
-    float previous = 0.0f;       
+    TerrainSample head{};
+    float previous = 0.0f;
     bool hasPrevious = false;
     bool active = false;
 };
@@ -280,6 +282,7 @@ inline bool wallTrackAdmits(const WallTrack& track, const TerrainSample& next,
                             WallEdgeAxis axis) {
     if (!track.active) return false;
     if (!wallLinkable(track.head, next, axis)) return false;
+
     if (!track.hasPrevious) return true;
     const float bend = next.distance - wallTrackPrediction(track);
     const float magnitude = bend < 0.0f ? -bend : bend;
@@ -340,7 +343,7 @@ inline std::uint32_t advanceWallTracks(WallTrackSet& set,
 
     struct Cell {
         std::uint8_t count = 0;
-        std::uint8_t choice = 0;  
+        std::uint8_t choice = 0;
         float score = 0.0f;
     };
     Cell table[kWallDepthLayers + 1u][kWallDepthLayers + 1u]{};
@@ -390,7 +393,9 @@ inline std::uint32_t advanceWallTracks(WallTrackSet& set,
             if (out != nullptr && written < capacity &&
                 reduceWallEdge(track.head, sample, axis,
                                &out[written]) != 0) {
+
                 out[written].origin = wallOriginFor(next.count);
+
                 out[written].buried =
                     track.head.buried && sample.buried;
                 ++written;
@@ -405,7 +410,7 @@ inline std::uint32_t advanceWallTracks(WallTrackSet& set,
             ++ti;
             ++si;
         } else if (choice == 0) {
-            ++ti;  
+            ++ti;
         } else {
             ++si;
         }
@@ -505,7 +510,7 @@ inline std::uint32_t reduceWallLayers(
     return advanceWallTracks(set, b, bCount, axis, out, capacity);
 }
 
-inline constexpr std::uint32_t kBuriedSearchWindow = 2;  // cells each way
+inline constexpr std::uint32_t kBuriedSearchWindow = 2;
 inline constexpr float kBuriedMinToleranceMeters = 3.0f;
 inline constexpr float kBuriedToleranceCells = 2.0f;
 
@@ -517,7 +522,6 @@ inline float buriedTolerance(float distance) {
     return scaled > kBuriedMinToleranceMeters ? scaled : kBuriedMinToleranceMeters;
 }
 
-// Deeper layers are shown only when nearby surface geometry confirms exposure.
 inline bool buriedSampleSurfaces(const TerrainSample& deep,
                                  const TerrainSample& nearest) {
     if (!acceptedWallSample(nearest)) return false;
@@ -562,6 +566,7 @@ inline void judgeBuriedSamples(TerrainSample* samples, const std::uint8_t* count
                 TerrainSample& sample = samples[wallSampleIndex(probe, layer)];
                 if (!acceptedWallSample(sample)) continue;
                 if (layer == 0) {
+
                     sample.buried = false;
                     ++surfacedOut[0];
                     continue;
@@ -602,4 +607,4 @@ inline void judgeBuriedSamples(TerrainSample* samples, const std::uint8_t* count
     }
 }
 
-}  
+}

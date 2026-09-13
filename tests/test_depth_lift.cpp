@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis
+
 #include <doctest.h>
 
 #include <cmath>
@@ -20,7 +20,7 @@ float lengthOf(const Vec3& v) {
     return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
-}  
+}
 
 TEST_CASE("clearance slides a point along its own view ray and nowhere else") {
     const DepthLift clearance =
@@ -28,9 +28,9 @@ TEST_CASE("clearance slides a point along its own view ray and nowhere else") {
     CHECK(clearance.active);
 
     const Vec3 points[] = {
-        Vec3{kEyeX + 40.0f, kEyeY + 52.0f, kEyeZ - 6.0f},   
-        Vec3{kEyeX - 3.0f, kEyeY - 1.6f, kEyeZ + 2.0f},     
-        Vec3{kEyeX + 210.0f, kEyeY + 90.0f, kEyeZ + 300.0f} 
+        Vec3{kEyeX + 40.0f, kEyeY + 52.0f, kEyeZ - 6.0f},
+        Vec3{kEyeX - 3.0f, kEyeY - 1.6f, kEyeZ + 2.0f},
+        Vec3{kEyeX + 210.0f, kEyeY + 90.0f, kEyeZ + 300.0f}
     };
     for (const Vec3& point : points) {
         const Vec3 lifted = applyDepthLift(clearance, point);
@@ -42,6 +42,7 @@ TEST_CASE("clearance slides a point along its own view ray and nowhere else") {
             before.x * after.x + before.y * after.y + before.z * after.z;
         CHECK(dot / (lengthOf(before) * lengthOf(after)) ==
               doctest::Approx(1.0f).epsilon(1e-5));
+
         CHECK(lengthOf(after) ==
               doctest::Approx(range * (1.0f - kSurveyDepthLiftFraction))
                   .epsilon(1e-4));
@@ -49,7 +50,8 @@ TEST_CASE("clearance slides a point along its own view ray and nowhere else") {
 }
 
 TEST_CASE("the clearance clears the depth a join sinks into a bulging rock") {
-    const float second = 1.0f;  
+
+    const float second = 1.0f;
     const float range = 66.0f;
     auto sag = [second](float span) { return span * span * second / 8.0f; };
 
@@ -81,6 +83,7 @@ TEST_CASE("clearance refuses rather than moving the picture somewhere wrong") {
     CHECK(applyDepthLift(untouched, point).y == point.y);
 }
 TEST_CASE("clearance and wave height compose without fighting each other") {
+
     const DepthLift clearance =
         depthLiftFor(kSurveyDepthLiftFraction, kEyeX, kEyeY, kEyeZ);
     const Vec3 measured{kEyeX + 40.0f, kEyeY + 52.0f, kEyeZ - 6.0f};

@@ -1,8 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 #include <lib.hpp>
 
 #include "GlyphController.hpp"
+#if SURVEY_DEPTH_SCAN
+#include "FidelityPolicy.hpp"
+#include "FidelityPlayground.hpp"
+#endif
 
 #include "GlyphIndex.hpp"
 #include "GlyphRenderer.hpp"
@@ -21,6 +26,11 @@ constexpr float kLiveMatchMeters = 3.0f;
 constexpr float kSelfRadiusMeters = 1.5f;
 
 constexpr std::uint32_t kRosterCadenceTicks = 20;
+#if SURVEY_DEPTH_SCAN
+constexpr std::uint32_t kRevealWindowTicks = static_cast<std::uint32_t>(survey_fidelity::kScanSeconds * 60.0f);
+#else
+constexpr std::uint32_t kRevealWindowTicks = pure::kPulseTicks;
+#endif
 
 float distanceSq(float ax, float az, float bx, float bz) {
     const float dx = ax - bx;
@@ -29,13 +39,20 @@ float distanceSq(float ax, float az, float bx, float bz) {
 }
 
 std::uint32_t ticksUntilWaveReaches(float distanceMeters) {
+#if SURVEY_DEPTH_SCAN
+    const float ticks = survey_fidelity::markerArrivalSeconds(distanceMeters) * 60.0f;
+#else
     const float ticks =
         pure::sweepTicksToReach(pure::waveCoordForRadius(distanceMeters));
+#endif
     if (!(ticks > 0.0f)) return 0;
     return static_cast<std::uint32_t>(ticks);
 }
 
 float waveDistanceMeters(float dx, float dz, float headingX, float headingZ) {
+#if SURVEY_DEPTH_SCAN
+    if (!survey_fidelity::imprintEnabled()) return std::sqrt(dx*dx + dz*dz);
+#endif
     const float forward = dx * headingX + dz * headingZ;
     return forward > 0.0f ? forward : 0.0f;
 }
@@ -44,7 +61,7 @@ float coneCosHalfAngle() {
     return __builtin_cosf(pure::kSurveyWidthRadians * 0.5f);
 }
 
-}  
+}
 
 void GlyphController::initialize(std::uintptr_t mainBase) {
     mainBase_ = mainBase;
@@ -203,6 +220,7 @@ void GlyphController::refreshLivePositions() {
 
         const auto pose = transforms.read(candidate.handle, scene.value.token);
         if (!pose.succeeded) {
+
             candidate.alive = false;
             continue;
         }
@@ -248,16 +266,21 @@ void GlyphController::refreshLivePositions() {
 
 void GlyphController::tick() {
     if (!active_) return;
+#if SURVEY_DEPTH_SCAN
+    tick_ = pulseTick_ + static_cast<std::uint32_t>(survey_fidelity::pulseSeconds() * 60.0f);
+#else
     ++tick_;
+#endif
 
     const std::uint32_t sincePulse = tick_ - pulseTick_;
-    const bool stillLive = sincePulse <= pure::kPulseTicks + pure::kGlyphLifeTicks;
+    const bool stillLive = sincePulse <= kRevealWindowTicks + pure::kGlyphLifeTicks;
 
     if (stillLive) {
         if (tick_ - lastRosterTick_ >= kRosterCadenceTicks) {
             lastRosterTick_ = tick_;
             rebuildRosterCandidates();
         }
+
         refreshLivePositions();
     }
 
@@ -341,7 +364,7 @@ void GlyphController::publish() {
     diagnostics_.filtered.overridden = overridden;
     diagnostics_.published = frame.count;
 
-    if (frame.count == 0 && tick_ - pulseTick_ > pure::kPulseTicks + pure::kGlyphLifeTicks) {
+    if (frame.count == 0 && tick_ - pulseTick_ > kRevealWindowTicks + pure::kGlyphLifeTicks) {
         active_ = false;
         mapCount_ = 0;
         liveCount_ = 0;
@@ -351,4 +374,4 @@ void GlyphController::publish() {
     render::publishGlyphs(frame);
 }
 
-}  
+}

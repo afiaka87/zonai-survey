@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 
 #pragma once
@@ -10,6 +11,7 @@
 namespace totk::ui {
 
 namespace tuning {
+
     inline constexpr float kScreenW = 1280.0f;
     inline constexpr float kScreenH = 720.0f;
 
@@ -17,7 +19,7 @@ namespace tuning {
     inline constexpr float  kBannerCharW   = 8.5f;
     inline constexpr float  kBannerTopY    = 16.0f;
     inline constexpr float  kBannerRightMargin = 0.0f;
-    inline constexpr std::size_t kBannerBuf = 384;   
+    inline constexpr std::size_t kBannerBuf = 384;
 
     inline constexpr float  kHudScale        = 1.10f;
     inline constexpr float  kHudLineH        = 15.7f;
@@ -25,7 +27,7 @@ namespace tuning {
     inline constexpr float  kHudBottomMargin = 14.0f;
     inline constexpr std::size_t kHudBuf      = 2048;
     inline constexpr std::size_t kHudMaxLines = 24;
-    inline constexpr std::size_t kHudLineBuf  = 224;  
+    inline constexpr std::size_t kHudLineBuf  = 224;
 
     inline constexpr float  kChargeScale = 0.95f;
     inline constexpr float  kChargeX     = 810.0f;
@@ -38,15 +40,15 @@ namespace tuning {
 
     inline constexpr std::uint32_t kPrimitiveUniformBlockBytes = 256;
     inline constexpr std::uint32_t kPrimitiveUniformDefaultBytes = 0x32000;
+
     inline constexpr std::uint32_t kPrimitiveUniformMaxBytes = 48u * 1024u * 1024u;
-} 
+}
 
 inline bool isSanePrimitiveUniformBufferBytes(std::uint32_t bytes) {
     return bytes >= tuning::kPrimitiveUniformDefaultBytes &&
            bytes <= tuning::kPrimitiveUniformMaxBytes &&
            bytes % tuning::kPrimitiveUniformBlockBytes == 0;
 }
-
 
 struct Rgba {
     float r, g, b, a;
@@ -126,7 +128,6 @@ inline bool isSanePresentation(const OverlayPresentation& p) {
     return true;
 }
 
-
 inline int measureLongestDisplayLine(const char* text) {
     int maxChars = 0;
     int run = 0;
@@ -202,11 +203,10 @@ inline std::size_t buildChargeMeterText(char* out, std::size_t cap,
     return n;
 }
 
-
 inline bool hudAppendLine(char* buf, std::size_t cap, const char* line) {
     std::size_t len = 0;
     while (buf[len] != '\0') { ++len; }
-    if (len + 2 >= cap) { return false; }               
+    if (len + 2 >= cap) { return false; }
     if (len > 0) { buf[len++] = '\n'; buf[len] = '\0'; }
     std::size_t i = 0;
     for (; line[i] != '\0' && len + i + 1 < cap; ++i) { buf[len + i] = line[i]; }
@@ -234,10 +234,9 @@ inline void hudLineYs(float* ys, std::size_t slotCount, int lineCount,
     for (std::size_t i = 0; i < slotCount; ++i) { ys[i] = top + (float)i * step; }
 }
 
-
 enum class ToastAge : std::uint8_t {
-    Reap,       
-    Decrement,  
+    Reap,
+    Decrement,
 };
 
 inline bool toastVisible(std::uint32_t ttlFrames) { return ttlFrames != 0; }
@@ -253,4 +252,4 @@ inline int firstFreeToastSlot(const bool* occupied, std::size_t slotCount) {
     return -1;
 }
 
-} 
+}

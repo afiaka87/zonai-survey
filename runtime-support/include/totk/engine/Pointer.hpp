@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 
 #pragma once
@@ -33,4 +34,4 @@ inline void writeMemory(std::uintptr_t address, const Value& value) {
     std::memcpy(reinterpret_cast<void*>(address), &value, sizeof(Value));
 }
 
-} 
+}

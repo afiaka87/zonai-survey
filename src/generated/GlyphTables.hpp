@@ -1,5 +1,3 @@
-// Generated file. Do not edit by hand.
-
 #pragma once
 #include <cstdint>
 
@@ -24,21 +22,21 @@ enum class GlyphClass : uint8_t {
 };
 
 struct NameEntry {
-    uint32_t hash;        // FNV-1a 32 of the actor name
-    uint16_t textOffset;  // into kNameBlob, or kNoName
-    uint8_t  cls;         // GlyphClass
-    uint8_t  value;       // the game's own SellingPrice, log-compressed to a byte
-    uint8_t  icon;        // index into zonai_survey::icons::kIconUtf8
+    uint32_t hash;
+    uint16_t textOffset;
+    uint8_t  cls;
+    uint8_t  value;
+    uint8_t  icon;
 };
 
 struct Placement {
-    int16_t  x, y, z;   // world position in kPosScale units
-    uint16_t name;      // index into kNames
-    uint16_t flags;     // kFlag*
+    int16_t  x, y, z;
+    uint16_t name;
+    uint16_t flags;
 };
 
 inline constexpr uint16_t kNoName = 0xFFFF;
-inline constexpr uint16_t kFlagInChest = 0x0001;  // name is the CONTENTS
+inline constexpr uint16_t kFlagInChest = 0x0001;
 inline constexpr uint16_t kFlagNoName  = 0x0002;
 
 inline constexpr float kPosScale = 0.25f;
@@ -59,4 +57,4 @@ extern const Placement kPlacements[kPlacementCount];
 extern const uint32_t  kCellStart[kGridWidth * kGridHeight + 1];
 extern const uint16_t  kFontGlyphs[kFontGlyphCount];
 
-} 
+}

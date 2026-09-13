@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 #include <lib.hpp>
 
@@ -20,7 +21,7 @@ float readFloat(const unsigned char* base, std::ptrdiff_t offset) {
     return value;
 }
 
-}  
+}
 
 void VerticalSurfaceProber::arm(float linkX, float linkY, float linkZ,
                                 float headingX, float headingZ,
@@ -117,6 +118,7 @@ std::uint32_t VerticalSurfaceProber::castNode(RaycastFn original,
     for (std::uint32_t layer = 0; layer < pure::kWallDepthLayers; ++layer)
         samples_[pure::wallSampleIndex(index, layer)] =
             layer < stored ? layers[layer] : pure::TerrainSample{};
+
     if (stored != 0 && shallow.hit && shallow.distance < layers[0].distance)
         seeThrough_.fetch_add(1, std::memory_order_relaxed);
     sampleCounts_[index] = static_cast<std::uint8_t>(stored);
@@ -163,6 +165,7 @@ std::uint32_t VerticalSurfaceProber::castProbeRay(
             distance > length + 0.1f)
             break;
         node.distance = distance;
+
         node.viewCosine =
             pure::rayViewCosine(node.normalX, node.normalY, node.normalZ,
                                 directionX, directionY, directionZ);
@@ -175,10 +178,12 @@ std::uint32_t VerticalSurfaceProber::castProbeRay(
         if (advancedFromCastOrigin && steepEnough &&
             distance - lastStoredDistance >=
                 pure::kWallMinLayerSeparationMeters) {
+
             layersOut[storedOut] = node;
             lastStoredDistance = distance;
             ++storedOut;
         } else if (advancedFromCastOrigin && !steepEnough && !shallowOut.hit) {
+
             shallowOut = node;
         }
 
@@ -189,4 +194,4 @@ std::uint32_t VerticalSurfaceProber::castProbeRay(
     return raycasts;
 }
 
-}  
+}

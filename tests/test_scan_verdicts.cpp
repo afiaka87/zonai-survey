@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #include <cstring>
 #include <string>
 
@@ -30,12 +32,12 @@ bool isPlainSentence(const char* text) {
     if (length == 0 || length > 48) return false;
     for (std::size_t i = 0; i < length; ++i) {
         const unsigned char c = static_cast<unsigned char>(text[i]);
-        if (c < 0x20 || c > 0x7E) return false;  
+        if (c < 0x20 || c > 0x7E) return false;
     }
     return true;
 }
 
-}  
+}
 
 TEST_CASE("every verdict has player-facing text, never a null or a blank") {
     for (const ScanVerdict verdict : kAllVerdicts) {
@@ -46,10 +48,11 @@ TEST_CASE("every verdict has player-facing text, never a null or a blank") {
     }
 }
 
-TEST_CASE("the font can render every refusal - ASCII only, no punctuation surprises") {
+TEST_CASE("the font can render every refusal — ASCII only, no punctuation surprises") {
+
     for (const ScanVerdict verdict : kAllVerdicts) {
         const std::string text = displayText(verdict);
-        CHECK(text.find("\xe2") == std::string::npos);  
+        CHECK(text.find("\xe2") == std::string::npos);
     }
     for (const ScanAbandonReason reason : kAllEndings) {
         const std::string text = displayText(reason);
@@ -73,6 +76,7 @@ TEST_CASE("no two refusals read the same, or the banner cannot tell them apart")
 }
 
 TEST_CASE("an unmapped enum value still produces text rather than falling off the end") {
+
     const auto strayVerdict = static_cast<ScanVerdict>(200);
     const auto strayReason = static_cast<ScanAbandonReason>(200);
     CHECK(isPlainSentence(displayText(strayVerdict)));
@@ -80,18 +84,21 @@ TEST_CASE("an unmapped enum value still produces text rather than falling off th
 }
 
 TEST_CASE("only a completed fade is an ordinary ending") {
+
     CHECK(isOrdinaryEnding(ScanAbandonReason::Expired));
     CHECK_FALSE(isOrdinaryEnding(ScanAbandonReason::PlayerLost));
     CHECK_FALSE(isOrdinaryEnding(ScanAbandonReason::WorldReloaded));
 }
 
 TEST_CASE("a refusal is a value, so gameplay never compares rendered strings") {
+
     const ScanVerdict verdict = ScanVerdict::AlreadyPulsing;
     CHECK(verdict != ScanVerdict::Accepted);
-    CHECK(static_cast<int>(ScanVerdict::Accepted) == 0);  
+    CHECK(static_cast<int>(ScanVerdict::Accepted) == 0);
 }
 
 TEST_CASE("the wording uses the player's frame, not the code's") {
+
     CHECK(std::string(displayText(ScanVerdict::AlreadyPulsing)) ==
           "a scan is already travelling");
     CHECK(std::string(displayText(ScanVerdict::PlayerUnresolved)) ==

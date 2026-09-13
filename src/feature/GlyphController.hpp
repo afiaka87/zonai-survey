@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <cstdint>
@@ -11,11 +13,11 @@
 namespace zonai_survey::feature {
 
 struct GlyphFilterCounts {
-    std::uint32_t outsideCone = 0;  
-    std::uint32_t beyondRange = 0;  
-    std::uint32_t lostToCap = 0;    
-    std::uint32_t onPlayer = 0;     
-    std::uint32_t overridden = 0;   
+    std::uint32_t outsideCone = 0;
+    std::uint32_t beyondRange = 0;
+    std::uint32_t lostToCap = 0;
+    std::uint32_t onPlayer = 0;
+    std::uint32_t overridden = 0;
 };
 
 struct GlyphDiagnostics {
@@ -82,4 +84,4 @@ class GlyphController {
     GlyphDiagnostics diagnostics_{};
 };
 
-}  
+}

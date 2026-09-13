@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <cmath>
@@ -7,18 +9,17 @@
 
 namespace zonai_survey::pure {
 
-// Probes are authorized in ring-major wavefront order and capped per worker callback.
 inline constexpr float kPi = 3.14159265358979323846f;
 inline constexpr float kRadiansToDegrees = 180.0f / kPi;
 inline constexpr float kConeDegrees = 70.0f;
 inline constexpr float kConeRadians = kConeDegrees * kPi / 180.0f;
 
-inline constexpr uint32_t kSpokes = 64;  
+inline constexpr uint32_t kSpokes = 64;
 
-inline constexpr uint32_t kRings = 37;   
+inline constexpr uint32_t kRings = 37;
 
 inline constexpr float kNearSpacing = 2.5f;
-inline constexpr uint32_t kNearRings = 10;  
+inline constexpr uint32_t kNearRings = 10;
 
 inline constexpr uint32_t kInnerRings = 3;
 inline constexpr float kInnerSpacing = kNearSpacing / 4.0f;
@@ -35,6 +36,7 @@ constexpr RingTable makeRingTable() {
     float gap = kInnerSpacing;
     float radius = 0.0f;
     for (uint32_t ring = 0; ring < kRings; ++ring) {
+
         if (ring == kInnerRings + 1u) gap = kNearSpacing;
         if (ring >= kInnerRings + kNearRings) gap *= kRingGrowth;
         radius += gap;
@@ -67,7 +69,8 @@ inline float ringSpokeSpacing(uint32_t ring) {
 }
 
 inline constexpr uint32_t kProbesPerTick = 96;
-inline constexpr uint32_t kPulseTicks = 30;  // ~0.5 s at the ~60 Hz module tick
+
+inline constexpr uint32_t kPulseTicks = 30;
 
 inline float wavePosition(uint32_t tick) {
     return static_cast<float>(kRings) * static_cast<float>(tick) / static_cast<float>(kPulseTicks);
@@ -106,15 +109,13 @@ inline float waveCoordForRadius(float radius) {
     return static_cast<float>(kRings);
 }
 
-
 constexpr uint32_t probeRing(uint32_t index) { return index / kSpokes; }
 constexpr uint32_t probeSpoke(uint32_t index) { return index % kSpokes; }
 constexpr uint32_t probeIndex(uint32_t ring, uint32_t spoke) {
     return ring * kSpokes + spoke;
 }
 
-
-inline constexpr float kSurveyWidthDegrees = 150.0f;
+inline constexpr float kSurveyWidthDegrees = 100.0f;
 inline constexpr float kSurveyWidthRadians = kSurveyWidthDegrees * kPi / 180.0f;
 
 inline float surveyTanHalfWidth() {
@@ -154,7 +155,6 @@ inline float sampleRadialScale(uint32_t spoke) {
     return std::sqrt(1.0f + slope * slope);
 }
 
-
 inline uint32_t authorisedProbeCount(uint32_t tick) {
     return ringsReached(tick) * kSpokes;
 }
@@ -166,7 +166,6 @@ constexpr uint32_t probeBatchSize(uint32_t authorised, uint32_t completed) {
     const uint32_t available = reachable - completed;
     return available < kProbesPerTick ? available : kProbesPerTick;
 }
-
 
 inline constexpr float kMinProbeCeiling = 40.0f;
 inline constexpr float kMinProbeFloor = 80.0f;
@@ -243,4 +242,4 @@ inline FanRay recoveryRayFor(uint32_t index, float linkX, float linkZ,
                   narrow.toX,   referenceY - recoveryFloorFor(spacing),   narrow.toZ};
 }
 
-}  
+}

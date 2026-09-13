@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) Clay Mullis; StealHeapHook derived from totk-lotuskit by aquacluck and contributors.
+
+// Banner/HUD logic Copyright (C) Clay Mullis
+// StealHeapHook derives from aquacluck's https://github.com/aquacluck/totk-lotuskit (GPLv2).
 
 #pragma once
 
-#include "totk/ui/TextWriter.hpp"  
+#include "totk/ui/TextWriter.hpp"
 #include "totk/ui/OverlayLayout.hpp"
 #include <gfx/seadColor.h>
 
@@ -32,6 +34,7 @@ namespace overlay {
     void hideChargeMeter();
 
 #if OVERLAY_DEBUG_HUD
+
     namespace hud {
         void begin();
         void linef(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
@@ -39,4 +42,4 @@ namespace overlay {
     }
 #endif
 
-} 
+}

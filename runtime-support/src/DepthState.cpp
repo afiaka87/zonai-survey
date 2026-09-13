@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 #include <lib.hpp>
 
 #include <cstdint>
 #include <cstring>
 
-#include <nn/util.h>  
+#include <nn/util.h>
 
 #include "totk/render/DepthState.hpp"
 
@@ -39,7 +40,7 @@ void note(const char* format, Args... args) {
     totk::ui::emitDiagnostic(line);
 }
 
-}  
+}
 
 bool configureDepthState(std::uintptr_t mainBase) {
     if (g_ready) return true;
@@ -79,4 +80,4 @@ void restoreSceneState(agl::DrawContext* drawCtx) {
     if (g_ready && drawCtx) g_apply(g_sceneRestore, drawCtx);
 }
 
-}  
+}

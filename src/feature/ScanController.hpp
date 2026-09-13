@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <cstdint>
@@ -19,8 +21,8 @@ namespace zonai_survey::feature {
 
 enum class ScanState : std::uint8_t {
     Idle,
-    Pulsing,  
-    Holding,  
+    Pulsing,
+    Holding,
 };
 
 struct ScanDiagnostics {
@@ -33,10 +35,12 @@ struct ScanDiagnostics {
     std::uint32_t wallProbesIssued = 0;
     std::uint32_t wallProbesComplete = 0;
     std::uint32_t wallRaycasts = 0;
+
     std::uint64_t wallSampleTicks = 0;
     std::uint32_t wallHits = 0;
     std::uint32_t wallSegments = 0;
     std::uint32_t wallSegmentsDropped = 0;
+
     std::uint32_t wallLowestDrop = 0;
     std::uint32_t wallBelowSamples = 0;
 
@@ -59,8 +63,8 @@ struct ScanDiagnostics {
     std::uint32_t crestTops = 0;
 
     std::uint32_t hits = 0;
-    std::uint32_t reachRing = 0;    
-    std::uint32_t reachMeters = 0;  
+    std::uint32_t reachRing = 0;
+    std::uint32_t reachMeters = 0;
 
     pure::ScanVerdict lastVerdict = pure::ScanVerdict::Accepted;
     pure::ScanAbandonReason lastEnding = pure::ScanAbandonReason::Expired;
@@ -98,6 +102,7 @@ class ScanController {
     void resetWallTracking();
     void resetGroundTracking();
     void composeSegments();
+
     void emitRidgeCrests(std::uint32_t outerRing);
     void emitWallTopCrests();
     void emitShallowRow(std::uint32_t row);
@@ -115,6 +120,9 @@ class ScanController {
     float headingX_ = 0.0f;
     float headingZ_ = 1.0f;
 
+#if SURVEY_DEPTH_SCAN
+    ScanDiagnostics diagnostics_{};
+#else
     engine::TerrainProber prober_{};
     engine::VerticalSurfaceProber wallProber_{};
     ScanDiagnostics diagnostics_{};
@@ -125,23 +133,28 @@ class ScanController {
     std::uint32_t groundSegmentCount_ = 0;
     std::uint32_t wallSegmentCount_ = 0;
     std::uint32_t segmentCount_ = 0;
-    std::uint32_t reducedThrough_ = 0;  
+    std::uint32_t reducedThrough_ = 0;
 
     pure::WallTrackSet wallColumnTracks_[pure::kWallColumns]{};
+
     pure::GroundTrack groundSpokeTracks_[pure::kSpokes]{};
     std::uint32_t groundArcRefused_ = 0;
     std::uint32_t groundRibRefused_ = 0;
     std::uint32_t groundTrackRefused_ = 0;
     std::uint32_t groundPairRefused_ = 0;
     std::uint32_t groundCellRecovered_ = 0;
+
     bool wallIdentityJudged_ = false;
     std::uint32_t wallSurfaced_[pure::kWallDepthLayers]{};
     std::uint32_t wallBuried_[pure::kWallDepthLayers]{};
+
     std::uint32_t sortCounts_[pure::kBatchBucketCount + 1u]{};
     std::uint32_t sortCursor_[pure::kBatchBucketCount + 1u]{};
+
     std::uint32_t wallRowEligible_ = 0;
     std::uint32_t wallNoHit_ = 0;
     std::uint32_t wallNotSteep_ = 0;
+
     std::uint32_t groundHealed_ = 0;
     std::uint32_t wallHealed_ = 0;
     std::uint32_t shallowAccepted_ = 0;
@@ -150,6 +163,7 @@ class ScanController {
     std::uint32_t crestArcs_ = 0;
     std::uint32_t crestTops_ = 0;
     bool wallTopCrestEmitted_ = false;
+
     std::uint32_t buriedFiltered_ = 0;
     std::uint32_t buriedComposed_ = 0;
     std::uint32_t wallRowsReduced_ = 0;
@@ -160,13 +174,16 @@ class ScanController {
 
     pure::TerrainSample ringBuffer_[pure::kSpokes]{};
     pure::TerrainSample previousRing_[pure::kSpokes]{};
+
     pure::TerrainSample ringTwoBack_[pure::kSpokes]{};
     bool previousArcDrawn_[pure::kSpokes]{};
     bool currentArcDrawn_[pure::kSpokes]{};
+
     engine::WaterSurfaceProbe waterProbe_{};
     std::uint32_t spikesDropped_ = 0;
     std::uint32_t hits_ = 0;
     std::uint32_t reachRing_ = 0;
+#endif
 };
 
-}  
+}

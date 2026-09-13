@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
 
 #pragma once
@@ -26,4 +27,4 @@ inline void copyStatus(char* dst, const char* text) {
     dst[i] = 0;
 }
 
-} 
+}

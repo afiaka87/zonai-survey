@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+
 // Copyright (C) Clay Mullis
+
 #pragma once
 
 #include <cmath>
@@ -11,8 +13,6 @@
 #include "SurveySweep.hpp"
 
 namespace zonai_survey::pure {
-
-
 
 inline constexpr float kArcWidth = 1.8f;
 inline constexpr float kRibWidth = 1.1f;
@@ -54,9 +54,9 @@ inline bool segmentStaticVisible(const ScanSegment& segment) {
 
 inline bool groupTickPasses(float revealWave, std::uint32_t tick,
                             bool crestline = false) {
+
     return surveyPassAlpha(crestline, revealWave, tick) > kAlphaCutoff;
 }
-
 
 constexpr bool isCliffVertical(const ScanSegment& segment) {
     return !segment.isArc && originIsWall(segment.origin);
@@ -64,12 +64,13 @@ constexpr bool isCliffVertical(const ScanSegment& segment) {
 
 inline constexpr float kCliffVerticalAlphaScale = 0.90f;
 
-// Batch order preserves rings and keeps ribs before arcs within each ring.
 struct BatchKey {
     float revealWave = -1.0f;
     SlopeLane lane = SlopeLane::Cool;
     bool isArc = false;
+
     bool cliffVertical = false;
+
     bool crestline = false;
 
     [[nodiscard]] constexpr bool sameAs(const BatchKey& other) const {
@@ -85,6 +86,7 @@ constexpr BatchKey batchKeyFor(const ScanSegment& segment) {
 }
 
 inline constexpr std::uint32_t kBatchWaveSteps = (kRings + 1u) * kRevealSteps;
+
 inline constexpr std::uint32_t kBatchKindCount = 4u;
 inline constexpr std::uint32_t kBatchBucketCount =
     kBatchWaveSteps * kBatchKindCount * kSlopeLaneCount;
@@ -112,8 +114,8 @@ inline std::uint32_t batchBucket(const ScanSegment& segment) {
 struct SegmentGroup {
     BatchKey key{};
     std::uint32_t first = 0;
-    std::uint32_t count = 0;  
-    std::uint32_t drawn = 0;  // segments in the span that pass at this tick
+    std::uint32_t count = 0;
+    std::uint32_t drawn = 0;
 };
 
 template <typename Emit>
@@ -164,6 +166,7 @@ inline bool framePackedForBatching(const ScanSegment* segments,
             current.isArc, current.crestline, isCliffVertical(current));
         if (currentKind > previousKind) continue;
         if (currentKind < previousKind) return false;
+
         if (laneIndex(current.lane) < laneIndex(previous.lane)) return false;
     }
     return true;
@@ -195,9 +198,9 @@ inline std::uint32_t buildGroupSpans(const ScanSegment* segments,
     return written < capacity ? written : capacity;
 }
 
+inline constexpr std::uint32_t kRingVertexBytes = 36;
+inline constexpr std::uint32_t kRingBlockBytes = 256;
 
-inline constexpr std::uint32_t kRingVertexBytes = 36;  // one vertex, per the engine
-inline constexpr std::uint32_t kRingBlockBytes = 256;  
 inline constexpr std::uint32_t kRingFramesInFlight = 4;
 
 constexpr std::uint32_t roundToRingBlock(std::uint32_t bytes) {
@@ -228,8 +231,8 @@ static_assert(kSurveyRingBytes >= kSurveyRequiredRingBytes,
               "every in-flight Survey frame must fit before shared slack");
 static_assert(kSurveyRingBytes % kRingBlockBytes == 0,
               "the drawer's allocator only deals in whole blocks");
+
 static_assert(kSurveyRingBytes <= 48u * 1024u * 1024u,
               "the overlay refuses anything past its sane ceiling");
 
-
-}  
+}
